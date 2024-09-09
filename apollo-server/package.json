@@ -1,0 +1,36 @@
+{
+  "name": "poc-svelte-neo4j-graphql-apollo-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "license": "AGPL-version-3.0",
+  "private": false,
+  "engines": {
+    "node": ">= 14.0.0",
+    "npm": ">= 6.0.0"
+  },
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": "",
+  "keywords": [],
+  "author": {
+    "name": "Robin Maréchal",
+    "email": "robin.marechal@apside.com",
+    "url": "https://github.com/robinmarechal"
+  },
+  "contributors": [],
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.11.0",
+    "@neo4j/graphql": "^5.6.2",
+    "dotenv": "^16.4.5",
+    "graphql": "^16.9.0",
+    "neo4j-driver": "^5.24.1"
+  }
+}

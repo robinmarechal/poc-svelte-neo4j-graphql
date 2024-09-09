@@ -1,0 +1,48 @@
+type Agence {
+    city: String!
+    peopleMainAgency: [Person!]! @relationship(type: "MAIN_AGENCY", direction: IN)
+}
+
+type Client {
+    missionsClient: [Mission!]! @relationship(type: "CLIENT", direction: IN)
+    name: String!
+}
+
+type Company {
+    name: String!
+    peopleWorksFor: [Person!]! @relationship(type: "WORKS_FOR", direction: IN, properties: "WorksForProperties")
+}
+
+type Mission {
+    clientClients: [Client!]! @relationship(type: "CLIENT", direction: OUT)
+    from: Date!
+    missionDetailsMissionDetails: [MissionDetails!]! @relationship(type: "MISSION_DETAILS", direction: OUT)
+    peopleMission: [Person!]! @relationship(type: "MISSION", direction: IN)
+    project: String!
+    to: Date
+}
+
+type MissionDetails {
+    key: String!
+    missionsMissionDetails: [Mission!]! @relationship(type: "MISSION_DETAILS", direction: IN)
+    value: String!
+}
+
+type Person {
+    birthdate: Date!
+    firstname: String!
+    hasRoleRoles: [Role!]! @relationship(type: "HAS_ROLE", direction: OUT)
+    lastname: String!
+    mainAgencyAgences: [Agence!]! @relationship(type: "MAIN_AGENCY", direction: OUT)
+    missionMissions: [Mission!]! @relationship(type: "MISSION", direction: OUT)
+    worksForCompanies: [Company!]! @relationship(type: "WORKS_FOR", direction: OUT, properties: "WorksForProperties")
+}
+
+type Role {
+    peopleHasRole: [Person!]! @relationship(type: "HAS_ROLE", direction: IN)
+    title: String!
+}
+
+type WorksForProperties @relationshipProperties {
+    hiringdate: Date!
+}
