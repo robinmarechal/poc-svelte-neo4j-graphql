@@ -1,0 +1,2647 @@
+"""
+Indicates exactly one field must be supplied and this field must not be `null`.
+"""
+directive @oneOf on INPUT_OBJECT
+
+type Agence {
+  city: String!
+  peopleMainAgency(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleMainAgencyAggregate(directed: Boolean = true, where: PersonWhere): AgencePersonPeopleMainAgencyAggregationSelection
+  peopleMainAgencyConnection(after: String, directed: Boolean = true, first: Int, sort: [AgencePeopleMainAgencyConnectionSort!], where: AgencePeopleMainAgencyConnectionWhere): AgencePeopleMainAgencyConnection!
+}
+
+type AgenceAggregateSelection {
+  city: StringAggregateSelection!
+  count: Int!
+}
+
+input AgenceConnectInput {
+  peopleMainAgency: [AgencePeopleMainAgencyConnectFieldInput!]
+}
+
+input AgenceConnectWhere {
+  node: AgenceWhere!
+}
+
+input AgenceCreateInput {
+  city: String!
+  peopleMainAgency: AgencePeopleMainAgencyFieldInput
+}
+
+input AgenceDeleteInput {
+  peopleMainAgency: [AgencePeopleMainAgencyDeleteFieldInput!]
+}
+
+input AgenceDisconnectInput {
+  peopleMainAgency: [AgencePeopleMainAgencyDisconnectFieldInput!]
+}
+
+type AgenceEdge {
+  cursor: String!
+  node: Agence!
+}
+
+input AgenceOptions {
+  limit: Int
+  offset: Int
+
+  """
+  Specify one or more AgenceSort objects to sort Agences by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [AgenceSort!]
+}
+
+input AgencePeopleMainAgencyAggregateInput {
+  AND: [AgencePeopleMainAgencyAggregateInput!]
+  NOT: AgencePeopleMainAgencyAggregateInput
+  OR: [AgencePeopleMainAgencyAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: AgencePeopleMainAgencyNodeAggregationWhereInput
+}
+
+input AgencePeopleMainAgencyConnectFieldInput {
+  connect: [PersonConnectInput!]
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: PersonConnectWhere
+}
+
+type AgencePeopleMainAgencyConnection {
+  edges: [AgencePeopleMainAgencyRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input AgencePeopleMainAgencyConnectionSort {
+  node: PersonSort
+}
+
+input AgencePeopleMainAgencyConnectionWhere {
+  AND: [AgencePeopleMainAgencyConnectionWhere!]
+  NOT: AgencePeopleMainAgencyConnectionWhere
+  OR: [AgencePeopleMainAgencyConnectionWhere!]
+  node: PersonWhere
+}
+
+input AgencePeopleMainAgencyCreateFieldInput {
+  node: PersonCreateInput!
+}
+
+input AgencePeopleMainAgencyDeleteFieldInput {
+  delete: PersonDeleteInput
+  where: AgencePeopleMainAgencyConnectionWhere
+}
+
+input AgencePeopleMainAgencyDisconnectFieldInput {
+  disconnect: PersonDisconnectInput
+  where: AgencePeopleMainAgencyConnectionWhere
+}
+
+input AgencePeopleMainAgencyFieldInput {
+  connect: [AgencePeopleMainAgencyConnectFieldInput!]
+  create: [AgencePeopleMainAgencyCreateFieldInput!]
+}
+
+input AgencePeopleMainAgencyNodeAggregationWhereInput {
+  AND: [AgencePeopleMainAgencyNodeAggregationWhereInput!]
+  NOT: AgencePeopleMainAgencyNodeAggregationWhereInput
+  OR: [AgencePeopleMainAgencyNodeAggregationWhereInput!]
+  firstname_AVERAGE_LENGTH_EQUAL: Float
+  firstname_AVERAGE_LENGTH_GT: Float
+  firstname_AVERAGE_LENGTH_GTE: Float
+  firstname_AVERAGE_LENGTH_LT: Float
+  firstname_AVERAGE_LENGTH_LTE: Float
+  firstname_LONGEST_LENGTH_EQUAL: Int
+  firstname_LONGEST_LENGTH_GT: Int
+  firstname_LONGEST_LENGTH_GTE: Int
+  firstname_LONGEST_LENGTH_LT: Int
+  firstname_LONGEST_LENGTH_LTE: Int
+  firstname_SHORTEST_LENGTH_EQUAL: Int
+  firstname_SHORTEST_LENGTH_GT: Int
+  firstname_SHORTEST_LENGTH_GTE: Int
+  firstname_SHORTEST_LENGTH_LT: Int
+  firstname_SHORTEST_LENGTH_LTE: Int
+  lastname_AVERAGE_LENGTH_EQUAL: Float
+  lastname_AVERAGE_LENGTH_GT: Float
+  lastname_AVERAGE_LENGTH_GTE: Float
+  lastname_AVERAGE_LENGTH_LT: Float
+  lastname_AVERAGE_LENGTH_LTE: Float
+  lastname_LONGEST_LENGTH_EQUAL: Int
+  lastname_LONGEST_LENGTH_GT: Int
+  lastname_LONGEST_LENGTH_GTE: Int
+  lastname_LONGEST_LENGTH_LT: Int
+  lastname_LONGEST_LENGTH_LTE: Int
+  lastname_SHORTEST_LENGTH_EQUAL: Int
+  lastname_SHORTEST_LENGTH_GT: Int
+  lastname_SHORTEST_LENGTH_GTE: Int
+  lastname_SHORTEST_LENGTH_LT: Int
+  lastname_SHORTEST_LENGTH_LTE: Int
+}
+
+type AgencePeopleMainAgencyRelationship {
+  cursor: String!
+  node: Person!
+}
+
+input AgencePeopleMainAgencyUpdateConnectionInput {
+  node: PersonUpdateInput
+}
+
+input AgencePeopleMainAgencyUpdateFieldInput {
+  connect: [AgencePeopleMainAgencyConnectFieldInput!]
+  create: [AgencePeopleMainAgencyCreateFieldInput!]
+  delete: [AgencePeopleMainAgencyDeleteFieldInput!]
+  disconnect: [AgencePeopleMainAgencyDisconnectFieldInput!]
+  update: AgencePeopleMainAgencyUpdateConnectionInput
+  where: AgencePeopleMainAgencyConnectionWhere
+}
+
+type AgencePersonPeopleMainAgencyAggregationSelection {
+  count: Int!
+  node: AgencePersonPeopleMainAgencyNodeAggregateSelection
+}
+
+type AgencePersonPeopleMainAgencyNodeAggregateSelection {
+  firstname: StringAggregateSelection!
+  lastname: StringAggregateSelection!
+}
+
+input AgenceRelationInput {
+  peopleMainAgency: [AgencePeopleMainAgencyCreateFieldInput!]
+}
+
+"""
+Fields to sort Agences by. The order in which sorts are applied is not guaranteed when specifying many fields in one AgenceSort object.
+"""
+input AgenceSort {
+  city: SortDirection
+}
+
+input AgenceUpdateInput {
+  city: String
+  peopleMainAgency: [AgencePeopleMainAgencyUpdateFieldInput!]
+}
+
+input AgenceWhere {
+  AND: [AgenceWhere!]
+  NOT: AgenceWhere
+  OR: [AgenceWhere!]
+  city: String
+  city_CONTAINS: String
+  city_ENDS_WITH: String
+  city_IN: [String!]
+  city_STARTS_WITH: String
+  peopleMainAgencyAggregate: AgencePeopleMainAgencyAggregateInput
+
+  """
+  Return Agences where all of the related AgencePeopleMainAgencyConnections match this filter
+  """
+  peopleMainAgencyConnection_ALL: AgencePeopleMainAgencyConnectionWhere
+
+  """
+  Return Agences where none of the related AgencePeopleMainAgencyConnections match this filter
+  """
+  peopleMainAgencyConnection_NONE: AgencePeopleMainAgencyConnectionWhere
+
+  """
+  Return Agences where one of the related AgencePeopleMainAgencyConnections match this filter
+  """
+  peopleMainAgencyConnection_SINGLE: AgencePeopleMainAgencyConnectionWhere
+
+  """
+  Return Agences where some of the related AgencePeopleMainAgencyConnections match this filter
+  """
+  peopleMainAgencyConnection_SOME: AgencePeopleMainAgencyConnectionWhere
+
+  """Return Agences where all of the related People match this filter"""
+  peopleMainAgency_ALL: PersonWhere
+
+  """Return Agences where none of the related People match this filter"""
+  peopleMainAgency_NONE: PersonWhere
+
+  """Return Agences where one of the related People match this filter"""
+  peopleMainAgency_SINGLE: PersonWhere
+
+  """Return Agences where some of the related People match this filter"""
+  peopleMainAgency_SOME: PersonWhere
+}
+
+type AgencesConnection {
+  edges: [AgenceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Client {
+  missionsClient(directed: Boolean = true, options: MissionOptions, where: MissionWhere): [Mission!]!
+  missionsClientAggregate(directed: Boolean = true, where: MissionWhere): ClientMissionMissionsClientAggregationSelection
+  missionsClientConnection(after: String, directed: Boolean = true, first: Int, sort: [ClientMissionsClientConnectionSort!], where: ClientMissionsClientConnectionWhere): ClientMissionsClientConnection!
+  name: String!
+}
+
+type ClientAggregateSelection {
+  count: Int!
+  name: StringAggregateSelection!
+}
+
+input ClientConnectInput {
+  missionsClient: [ClientMissionsClientConnectFieldInput!]
+}
+
+input ClientConnectWhere {
+  node: ClientWhere!
+}
+
+input ClientCreateInput {
+  missionsClient: ClientMissionsClientFieldInput
+  name: String!
+}
+
+input ClientDeleteInput {
+  missionsClient: [ClientMissionsClientDeleteFieldInput!]
+}
+
+input ClientDisconnectInput {
+  missionsClient: [ClientMissionsClientDisconnectFieldInput!]
+}
+
+type ClientEdge {
+  cursor: String!
+  node: Client!
+}
+
+type ClientMissionMissionsClientAggregationSelection {
+  count: Int!
+  node: ClientMissionMissionsClientNodeAggregateSelection
+}
+
+type ClientMissionMissionsClientNodeAggregateSelection {
+  project: StringAggregateSelection!
+}
+
+input ClientMissionsClientAggregateInput {
+  AND: [ClientMissionsClientAggregateInput!]
+  NOT: ClientMissionsClientAggregateInput
+  OR: [ClientMissionsClientAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: ClientMissionsClientNodeAggregationWhereInput
+}
+
+input ClientMissionsClientConnectFieldInput {
+  connect: [MissionConnectInput!]
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: MissionConnectWhere
+}
+
+type ClientMissionsClientConnection {
+  edges: [ClientMissionsClientRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input ClientMissionsClientConnectionSort {
+  node: MissionSort
+}
+
+input ClientMissionsClientConnectionWhere {
+  AND: [ClientMissionsClientConnectionWhere!]
+  NOT: ClientMissionsClientConnectionWhere
+  OR: [ClientMissionsClientConnectionWhere!]
+  node: MissionWhere
+}
+
+input ClientMissionsClientCreateFieldInput {
+  node: MissionCreateInput!
+}
+
+input ClientMissionsClientDeleteFieldInput {
+  delete: MissionDeleteInput
+  where: ClientMissionsClientConnectionWhere
+}
+
+input ClientMissionsClientDisconnectFieldInput {
+  disconnect: MissionDisconnectInput
+  where: ClientMissionsClientConnectionWhere
+}
+
+input ClientMissionsClientFieldInput {
+  connect: [ClientMissionsClientConnectFieldInput!]
+  create: [ClientMissionsClientCreateFieldInput!]
+}
+
+input ClientMissionsClientNodeAggregationWhereInput {
+  AND: [ClientMissionsClientNodeAggregationWhereInput!]
+  NOT: ClientMissionsClientNodeAggregationWhereInput
+  OR: [ClientMissionsClientNodeAggregationWhereInput!]
+  project_AVERAGE_LENGTH_EQUAL: Float
+  project_AVERAGE_LENGTH_GT: Float
+  project_AVERAGE_LENGTH_GTE: Float
+  project_AVERAGE_LENGTH_LT: Float
+  project_AVERAGE_LENGTH_LTE: Float
+  project_LONGEST_LENGTH_EQUAL: Int
+  project_LONGEST_LENGTH_GT: Int
+  project_LONGEST_LENGTH_GTE: Int
+  project_LONGEST_LENGTH_LT: Int
+  project_LONGEST_LENGTH_LTE: Int
+  project_SHORTEST_LENGTH_EQUAL: Int
+  project_SHORTEST_LENGTH_GT: Int
+  project_SHORTEST_LENGTH_GTE: Int
+  project_SHORTEST_LENGTH_LT: Int
+  project_SHORTEST_LENGTH_LTE: Int
+}
+
+type ClientMissionsClientRelationship {
+  cursor: String!
+  node: Mission!
+}
+
+input ClientMissionsClientUpdateConnectionInput {
+  node: MissionUpdateInput
+}
+
+input ClientMissionsClientUpdateFieldInput {
+  connect: [ClientMissionsClientConnectFieldInput!]
+  create: [ClientMissionsClientCreateFieldInput!]
+  delete: [ClientMissionsClientDeleteFieldInput!]
+  disconnect: [ClientMissionsClientDisconnectFieldInput!]
+  update: ClientMissionsClientUpdateConnectionInput
+  where: ClientMissionsClientConnectionWhere
+}
+
+input ClientOptions {
+  limit: Int
+  offset: Int
+
+  """
+  Specify one or more ClientSort objects to sort Clients by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [ClientSort!]
+}
+
+input ClientRelationInput {
+  missionsClient: [ClientMissionsClientCreateFieldInput!]
+}
+
+"""
+Fields to sort Clients by. The order in which sorts are applied is not guaranteed when specifying many fields in one ClientSort object.
+"""
+input ClientSort {
+  name: SortDirection
+}
+
+input ClientUpdateInput {
+  missionsClient: [ClientMissionsClientUpdateFieldInput!]
+  name: String
+}
+
+input ClientWhere {
+  AND: [ClientWhere!]
+  NOT: ClientWhere
+  OR: [ClientWhere!]
+  missionsClientAggregate: ClientMissionsClientAggregateInput
+
+  """
+  Return Clients where all of the related ClientMissionsClientConnections match this filter
+  """
+  missionsClientConnection_ALL: ClientMissionsClientConnectionWhere
+
+  """
+  Return Clients where none of the related ClientMissionsClientConnections match this filter
+  """
+  missionsClientConnection_NONE: ClientMissionsClientConnectionWhere
+
+  """
+  Return Clients where one of the related ClientMissionsClientConnections match this filter
+  """
+  missionsClientConnection_SINGLE: ClientMissionsClientConnectionWhere
+
+  """
+  Return Clients where some of the related ClientMissionsClientConnections match this filter
+  """
+  missionsClientConnection_SOME: ClientMissionsClientConnectionWhere
+
+  """Return Clients where all of the related Missions match this filter"""
+  missionsClient_ALL: MissionWhere
+
+  """Return Clients where none of the related Missions match this filter"""
+  missionsClient_NONE: MissionWhere
+
+  """Return Clients where one of the related Missions match this filter"""
+  missionsClient_SINGLE: MissionWhere
+
+  """Return Clients where some of the related Missions match this filter"""
+  missionsClient_SOME: MissionWhere
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_STARTS_WITH: String
+}
+
+type ClientsConnection {
+  edges: [ClientEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CompaniesConnection {
+  edges: [CompanyEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Company {
+  name: String!
+  peopleWorksFor(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleWorksForAggregate(directed: Boolean = true, where: PersonWhere): CompanyPersonPeopleWorksForAggregationSelection
+  peopleWorksForConnection(after: String, directed: Boolean = true, first: Int, sort: [CompanyPeopleWorksForConnectionSort!], where: CompanyPeopleWorksForConnectionWhere): CompanyPeopleWorksForConnection!
+}
+
+type CompanyAggregateSelection {
+  count: Int!
+  name: StringAggregateSelection!
+}
+
+input CompanyConnectInput {
+  peopleWorksFor: [CompanyPeopleWorksForConnectFieldInput!]
+}
+
+input CompanyConnectWhere {
+  node: CompanyWhere!
+}
+
+input CompanyCreateInput {
+  name: String!
+  peopleWorksFor: CompanyPeopleWorksForFieldInput
+}
+
+input CompanyDeleteInput {
+  peopleWorksFor: [CompanyPeopleWorksForDeleteFieldInput!]
+}
+
+input CompanyDisconnectInput {
+  peopleWorksFor: [CompanyPeopleWorksForDisconnectFieldInput!]
+}
+
+type CompanyEdge {
+  cursor: String!
+  node: Company!
+}
+
+input CompanyOptions {
+  limit: Int
+  offset: Int
+
+  """
+  Specify one or more CompanySort objects to sort Companies by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [CompanySort!]
+}
+
+input CompanyPeopleWorksForAggregateInput {
+  AND: [CompanyPeopleWorksForAggregateInput!]
+  NOT: CompanyPeopleWorksForAggregateInput
+  OR: [CompanyPeopleWorksForAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: CompanyPeopleWorksForNodeAggregationWhereInput
+}
+
+input CompanyPeopleWorksForConnectFieldInput {
+  connect: [PersonConnectInput!]
+  edge: WorksForPropertiesCreateInput!
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: PersonConnectWhere
+}
+
+type CompanyPeopleWorksForConnection {
+  edges: [CompanyPeopleWorksForRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input CompanyPeopleWorksForConnectionSort {
+  edge: WorksForPropertiesSort
+  node: PersonSort
+}
+
+input CompanyPeopleWorksForConnectionWhere {
+  AND: [CompanyPeopleWorksForConnectionWhere!]
+  NOT: CompanyPeopleWorksForConnectionWhere
+  OR: [CompanyPeopleWorksForConnectionWhere!]
+  edge: WorksForPropertiesWhere
+  node: PersonWhere
+}
+
+input CompanyPeopleWorksForCreateFieldInput {
+  edge: WorksForPropertiesCreateInput!
+  node: PersonCreateInput!
+}
+
+input CompanyPeopleWorksForDeleteFieldInput {
+  delete: PersonDeleteInput
+  where: CompanyPeopleWorksForConnectionWhere
+}
+
+input CompanyPeopleWorksForDisconnectFieldInput {
+  disconnect: PersonDisconnectInput
+  where: CompanyPeopleWorksForConnectionWhere
+}
+
+input CompanyPeopleWorksForFieldInput {
+  connect: [CompanyPeopleWorksForConnectFieldInput!]
+  create: [CompanyPeopleWorksForCreateFieldInput!]
+}
+
+input CompanyPeopleWorksForNodeAggregationWhereInput {
+  AND: [CompanyPeopleWorksForNodeAggregationWhereInput!]
+  NOT: CompanyPeopleWorksForNodeAggregationWhereInput
+  OR: [CompanyPeopleWorksForNodeAggregationWhereInput!]
+  firstname_AVERAGE_LENGTH_EQUAL: Float
+  firstname_AVERAGE_LENGTH_GT: Float
+  firstname_AVERAGE_LENGTH_GTE: Float
+  firstname_AVERAGE_LENGTH_LT: Float
+  firstname_AVERAGE_LENGTH_LTE: Float
+  firstname_LONGEST_LENGTH_EQUAL: Int
+  firstname_LONGEST_LENGTH_GT: Int
+  firstname_LONGEST_LENGTH_GTE: Int
+  firstname_LONGEST_LENGTH_LT: Int
+  firstname_LONGEST_LENGTH_LTE: Int
+  firstname_SHORTEST_LENGTH_EQUAL: Int
+  firstname_SHORTEST_LENGTH_GT: Int
+  firstname_SHORTEST_LENGTH_GTE: Int
+  firstname_SHORTEST_LENGTH_LT: Int
+  firstname_SHORTEST_LENGTH_LTE: Int
+  lastname_AVERAGE_LENGTH_EQUAL: Float
+  lastname_AVERAGE_LENGTH_GT: Float
+  lastname_AVERAGE_LENGTH_GTE: Float
+  lastname_AVERAGE_LENGTH_LT: Float
+  lastname_AVERAGE_LENGTH_LTE: Float
+  lastname_LONGEST_LENGTH_EQUAL: Int
+  lastname_LONGEST_LENGTH_GT: Int
+  lastname_LONGEST_LENGTH_GTE: Int
+  lastname_LONGEST_LENGTH_LT: Int
+  lastname_LONGEST_LENGTH_LTE: Int
+  lastname_SHORTEST_LENGTH_EQUAL: Int
+  lastname_SHORTEST_LENGTH_GT: Int
+  lastname_SHORTEST_LENGTH_GTE: Int
+  lastname_SHORTEST_LENGTH_LT: Int
+  lastname_SHORTEST_LENGTH_LTE: Int
+}
+
+type CompanyPeopleWorksForRelationship {
+  cursor: String!
+  node: Person!
+  properties: WorksForProperties!
+}
+
+input CompanyPeopleWorksForUpdateConnectionInput {
+  edge: WorksForPropertiesUpdateInput
+  node: PersonUpdateInput
+}
+
+input CompanyPeopleWorksForUpdateFieldInput {
+  connect: [CompanyPeopleWorksForConnectFieldInput!]
+  create: [CompanyPeopleWorksForCreateFieldInput!]
+  delete: [CompanyPeopleWorksForDeleteFieldInput!]
+  disconnect: [CompanyPeopleWorksForDisconnectFieldInput!]
+  update: CompanyPeopleWorksForUpdateConnectionInput
+  where: CompanyPeopleWorksForConnectionWhere
+}
+
+type CompanyPersonPeopleWorksForAggregationSelection {
+  count: Int!
+  node: CompanyPersonPeopleWorksForNodeAggregateSelection
+}
+
+type CompanyPersonPeopleWorksForNodeAggregateSelection {
+  firstname: StringAggregateSelection!
+  lastname: StringAggregateSelection!
+}
+
+input CompanyRelationInput {
+  peopleWorksFor: [CompanyPeopleWorksForCreateFieldInput!]
+}
+
+"""
+Fields to sort Companies by. The order in which sorts are applied is not guaranteed when specifying many fields in one CompanySort object.
+"""
+input CompanySort {
+  name: SortDirection
+}
+
+input CompanyUpdateInput {
+  name: String
+  peopleWorksFor: [CompanyPeopleWorksForUpdateFieldInput!]
+}
+
+input CompanyWhere {
+  AND: [CompanyWhere!]
+  NOT: CompanyWhere
+  OR: [CompanyWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_STARTS_WITH: String
+  peopleWorksForAggregate: CompanyPeopleWorksForAggregateInput
+
+  """
+  Return Companies where all of the related CompanyPeopleWorksForConnections match this filter
+  """
+  peopleWorksForConnection_ALL: CompanyPeopleWorksForConnectionWhere
+
+  """
+  Return Companies where none of the related CompanyPeopleWorksForConnections match this filter
+  """
+  peopleWorksForConnection_NONE: CompanyPeopleWorksForConnectionWhere
+
+  """
+  Return Companies where one of the related CompanyPeopleWorksForConnections match this filter
+  """
+  peopleWorksForConnection_SINGLE: CompanyPeopleWorksForConnectionWhere
+
+  """
+  Return Companies where some of the related CompanyPeopleWorksForConnections match this filter
+  """
+  peopleWorksForConnection_SOME: CompanyPeopleWorksForConnectionWhere
+
+  """Return Companies where all of the related People match this filter"""
+  peopleWorksFor_ALL: PersonWhere
+
+  """Return Companies where none of the related People match this filter"""
+  peopleWorksFor_NONE: PersonWhere
+
+  """Return Companies where one of the related People match this filter"""
+  peopleWorksFor_SINGLE: PersonWhere
+
+  """Return Companies where some of the related People match this filter"""
+  peopleWorksFor_SOME: PersonWhere
+}
+
+type CreateAgencesMutationResponse {
+  agences: [Agence!]!
+  info: CreateInfo!
+}
+
+type CreateClientsMutationResponse {
+  clients: [Client!]!
+  info: CreateInfo!
+}
+
+type CreateCompaniesMutationResponse {
+  companies: [Company!]!
+  info: CreateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
+type CreateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMissionDetailsMutationResponse {
+  info: CreateInfo!
+  missionDetails: [MissionDetails!]!
+}
+
+type CreateMissionsMutationResponse {
+  info: CreateInfo!
+  missions: [Mission!]!
+}
+
+type CreatePeopleMutationResponse {
+  info: CreateInfo!
+  people: [Person!]!
+}
+
+type CreateRolesMutationResponse {
+  info: CreateInfo!
+  roles: [Role!]!
+}
+
+"""A date, represented as a 'yyyy-mm-dd' string"""
+scalar Date
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mission {
+  clientClients(directed: Boolean = true, options: ClientOptions, where: ClientWhere): [Client!]!
+  clientClientsAggregate(directed: Boolean = true, where: ClientWhere): MissionClientClientClientsAggregationSelection
+  clientClientsConnection(after: String, directed: Boolean = true, first: Int, sort: [MissionClientClientsConnectionSort!], where: MissionClientClientsConnectionWhere): MissionClientClientsConnection!
+  from: Date!
+  missionDetailsMissionDetails(directed: Boolean = true, options: MissionDetailsOptions, where: MissionDetailsWhere): [MissionDetails!]!
+  missionDetailsMissionDetailsAggregate(directed: Boolean = true, where: MissionDetailsWhere): MissionMissionDetailsMissionDetailsMissionDetailsAggregationSelection
+  missionDetailsMissionDetailsConnection(after: String, directed: Boolean = true, first: Int, sort: [MissionMissionDetailsMissionDetailsConnectionSort!], where: MissionMissionDetailsMissionDetailsConnectionWhere): MissionMissionDetailsMissionDetailsConnection!
+  peopleMission(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleMissionAggregate(directed: Boolean = true, where: PersonWhere): MissionPersonPeopleMissionAggregationSelection
+  peopleMissionConnection(after: String, directed: Boolean = true, first: Int, sort: [MissionPeopleMissionConnectionSort!], where: MissionPeopleMissionConnectionWhere): MissionPeopleMissionConnection!
+  project: String!
+  to: Date
+}
+
+type MissionAggregateSelection {
+  count: Int!
+  project: StringAggregateSelection!
+}
+
+type MissionClientClientClientsAggregationSelection {
+  count: Int!
+  node: MissionClientClientClientsNodeAggregateSelection
+}
+
+type MissionClientClientClientsNodeAggregateSelection {
+  name: StringAggregateSelection!
+}
+
+input MissionClientClientsAggregateInput {
+  AND: [MissionClientClientsAggregateInput!]
+  NOT: MissionClientClientsAggregateInput
+  OR: [MissionClientClientsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: MissionClientClientsNodeAggregationWhereInput
+}
+
+input MissionClientClientsConnectFieldInput {
+  connect: [ClientConnectInput!]
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: ClientConnectWhere
+}
+
+type MissionClientClientsConnection {
+  edges: [MissionClientClientsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input MissionClientClientsConnectionSort {
+  node: ClientSort
+}
+
+input MissionClientClientsConnectionWhere {
+  AND: [MissionClientClientsConnectionWhere!]
+  NOT: MissionClientClientsConnectionWhere
+  OR: [MissionClientClientsConnectionWhere!]
+  node: ClientWhere
+}
+
+input MissionClientClientsCreateFieldInput {
+  node: ClientCreateInput!
+}
+
+input MissionClientClientsDeleteFieldInput {
+  delete: ClientDeleteInput
+  where: MissionClientClientsConnectionWhere
+}
+
+input MissionClientClientsDisconnectFieldInput {
+  disconnect: ClientDisconnectInput
+  where: MissionClientClientsConnectionWhere
+}
+
+input MissionClientClientsFieldInput {
+  connect: [MissionClientClientsConnectFieldInput!]
+  create: [MissionClientClientsCreateFieldInput!]
+}
+
+input MissionClientClientsNodeAggregationWhereInput {
+  AND: [MissionClientClientsNodeAggregationWhereInput!]
+  NOT: MissionClientClientsNodeAggregationWhereInput
+  OR: [MissionClientClientsNodeAggregationWhereInput!]
+  name_AVERAGE_LENGTH_EQUAL: Float
+  name_AVERAGE_LENGTH_GT: Float
+  name_AVERAGE_LENGTH_GTE: Float
+  name_AVERAGE_LENGTH_LT: Float
+  name_AVERAGE_LENGTH_LTE: Float
+  name_LONGEST_LENGTH_EQUAL: Int
+  name_LONGEST_LENGTH_GT: Int
+  name_LONGEST_LENGTH_GTE: Int
+  name_LONGEST_LENGTH_LT: Int
+  name_LONGEST_LENGTH_LTE: Int
+  name_SHORTEST_LENGTH_EQUAL: Int
+  name_SHORTEST_LENGTH_GT: Int
+  name_SHORTEST_LENGTH_GTE: Int
+  name_SHORTEST_LENGTH_LT: Int
+  name_SHORTEST_LENGTH_LTE: Int
+}
+
+type MissionClientClientsRelationship {
+  cursor: String!
+  node: Client!
+}
+
+input MissionClientClientsUpdateConnectionInput {
+  node: ClientUpdateInput
+}
+
+input MissionClientClientsUpdateFieldInput {
+  connect: [MissionClientClientsConnectFieldInput!]
+  create: [MissionClientClientsCreateFieldInput!]
+  delete: [MissionClientClientsDeleteFieldInput!]
+  disconnect: [MissionClientClientsDisconnectFieldInput!]
+  update: MissionClientClientsUpdateConnectionInput
+  where: MissionClientClientsConnectionWhere
+}
+
+input MissionConnectInput {
+  clientClients: [MissionClientClientsConnectFieldInput!]
+  missionDetailsMissionDetails: [MissionMissionDetailsMissionDetailsConnectFieldInput!]
+  peopleMission: [MissionPeopleMissionConnectFieldInput!]
+}
+
+input MissionConnectWhere {
+  node: MissionWhere!
+}
+
+input MissionCreateInput {
+  clientClients: MissionClientClientsFieldInput
+  from: Date!
+  missionDetailsMissionDetails: MissionMissionDetailsMissionDetailsFieldInput
+  peopleMission: MissionPeopleMissionFieldInput
+  project: String!
+  to: Date
+}
+
+input MissionDeleteInput {
+  clientClients: [MissionClientClientsDeleteFieldInput!]
+  missionDetailsMissionDetails: [MissionMissionDetailsMissionDetailsDeleteFieldInput!]
+  peopleMission: [MissionPeopleMissionDeleteFieldInput!]
+}
+
+type MissionDetails {
+  key: String!
+  missionsMissionDetails(directed: Boolean = true, options: MissionOptions, where: MissionWhere): [Mission!]!
+  missionsMissionDetailsAggregate(directed: Boolean = true, where: MissionWhere): MissionDetailsMissionMissionsMissionDetailsAggregationSelection
+  missionsMissionDetailsConnection(after: String, directed: Boolean = true, first: Int, sort: [MissionDetailsMissionsMissionDetailsConnectionSort!], where: MissionDetailsMissionsMissionDetailsConnectionWhere): MissionDetailsMissionsMissionDetailsConnection!
+  value: String!
+}
+
+type MissionDetailsAggregateSelection {
+  count: Int!
+  key: StringAggregateSelection!
+  value: StringAggregateSelection!
+}
+
+input MissionDetailsConnectInput {
+  missionsMissionDetails: [MissionDetailsMissionsMissionDetailsConnectFieldInput!]
+}
+
+input MissionDetailsConnectWhere {
+  node: MissionDetailsWhere!
+}
+
+type MissionDetailsConnection {
+  edges: [MissionDetailsEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input MissionDetailsCreateInput {
+  key: String!
+  missionsMissionDetails: MissionDetailsMissionsMissionDetailsFieldInput
+  value: String!
+}
+
+input MissionDetailsDeleteInput {
+  missionsMissionDetails: [MissionDetailsMissionsMissionDetailsDeleteFieldInput!]
+}
+
+input MissionDetailsDisconnectInput {
+  missionsMissionDetails: [MissionDetailsMissionsMissionDetailsDisconnectFieldInput!]
+}
+
+type MissionDetailsEdge {
+  cursor: String!
+  node: MissionDetails!
+}
+
+type MissionDetailsMissionMissionsMissionDetailsAggregationSelection {
+  count: Int!
+  node: MissionDetailsMissionMissionsMissionDetailsNodeAggregateSelection
+}
+
+type MissionDetailsMissionMissionsMissionDetailsNodeAggregateSelection {
+  project: StringAggregateSelection!
+}
+
+input MissionDetailsMissionsMissionDetailsAggregateInput {
+  AND: [MissionDetailsMissionsMissionDetailsAggregateInput!]
+  NOT: MissionDetailsMissionsMissionDetailsAggregateInput
+  OR: [MissionDetailsMissionsMissionDetailsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: MissionDetailsMissionsMissionDetailsNodeAggregationWhereInput
+}
+
+input MissionDetailsMissionsMissionDetailsConnectFieldInput {
+  connect: [MissionConnectInput!]
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: MissionConnectWhere
+}
+
+type MissionDetailsMissionsMissionDetailsConnection {
+  edges: [MissionDetailsMissionsMissionDetailsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input MissionDetailsMissionsMissionDetailsConnectionSort {
+  node: MissionSort
+}
+
+input MissionDetailsMissionsMissionDetailsConnectionWhere {
+  AND: [MissionDetailsMissionsMissionDetailsConnectionWhere!]
+  NOT: MissionDetailsMissionsMissionDetailsConnectionWhere
+  OR: [MissionDetailsMissionsMissionDetailsConnectionWhere!]
+  node: MissionWhere
+}
+
+input MissionDetailsMissionsMissionDetailsCreateFieldInput {
+  node: MissionCreateInput!
+}
+
+input MissionDetailsMissionsMissionDetailsDeleteFieldInput {
+  delete: MissionDeleteInput
+  where: MissionDetailsMissionsMissionDetailsConnectionWhere
+}
+
+input MissionDetailsMissionsMissionDetailsDisconnectFieldInput {
+  disconnect: MissionDisconnectInput
+  where: MissionDetailsMissionsMissionDetailsConnectionWhere
+}
+
+input MissionDetailsMissionsMissionDetailsFieldInput {
+  connect: [MissionDetailsMissionsMissionDetailsConnectFieldInput!]
+  create: [MissionDetailsMissionsMissionDetailsCreateFieldInput!]
+}
+
+input MissionDetailsMissionsMissionDetailsNodeAggregationWhereInput {
+  AND: [MissionDetailsMissionsMissionDetailsNodeAggregationWhereInput!]
+  NOT: MissionDetailsMissionsMissionDetailsNodeAggregationWhereInput
+  OR: [MissionDetailsMissionsMissionDetailsNodeAggregationWhereInput!]
+  project_AVERAGE_LENGTH_EQUAL: Float
+  project_AVERAGE_LENGTH_GT: Float
+  project_AVERAGE_LENGTH_GTE: Float
+  project_AVERAGE_LENGTH_LT: Float
+  project_AVERAGE_LENGTH_LTE: Float
+  project_LONGEST_LENGTH_EQUAL: Int
+  project_LONGEST_LENGTH_GT: Int
+  project_LONGEST_LENGTH_GTE: Int
+  project_LONGEST_LENGTH_LT: Int
+  project_LONGEST_LENGTH_LTE: Int
+  project_SHORTEST_LENGTH_EQUAL: Int
+  project_SHORTEST_LENGTH_GT: Int
+  project_SHORTEST_LENGTH_GTE: Int
+  project_SHORTEST_LENGTH_LT: Int
+  project_SHORTEST_LENGTH_LTE: Int
+}
+
+type MissionDetailsMissionsMissionDetailsRelationship {
+  cursor: String!
+  node: Mission!
+}
+
+input MissionDetailsMissionsMissionDetailsUpdateConnectionInput {
+  node: MissionUpdateInput
+}
+
+input MissionDetailsMissionsMissionDetailsUpdateFieldInput {
+  connect: [MissionDetailsMissionsMissionDetailsConnectFieldInput!]
+  create: [MissionDetailsMissionsMissionDetailsCreateFieldInput!]
+  delete: [MissionDetailsMissionsMissionDetailsDeleteFieldInput!]
+  disconnect: [MissionDetailsMissionsMissionDetailsDisconnectFieldInput!]
+  update: MissionDetailsMissionsMissionDetailsUpdateConnectionInput
+  where: MissionDetailsMissionsMissionDetailsConnectionWhere
+}
+
+input MissionDetailsOptions {
+  limit: Int
+  offset: Int
+
+  """
+  Specify one or more MissionDetailsSort objects to sort MissionDetails by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [MissionDetailsSort!]
+}
+
+input MissionDetailsRelationInput {
+  missionsMissionDetails: [MissionDetailsMissionsMissionDetailsCreateFieldInput!]
+}
+
+"""
+Fields to sort MissionDetails by. The order in which sorts are applied is not guaranteed when specifying many fields in one MissionDetailsSort object.
+"""
+input MissionDetailsSort {
+  key: SortDirection
+  value: SortDirection
+}
+
+input MissionDetailsUpdateInput {
+  key: String
+  missionsMissionDetails: [MissionDetailsMissionsMissionDetailsUpdateFieldInput!]
+  value: String
+}
+
+input MissionDetailsWhere {
+  AND: [MissionDetailsWhere!]
+  NOT: MissionDetailsWhere
+  OR: [MissionDetailsWhere!]
+  key: String
+  key_CONTAINS: String
+  key_ENDS_WITH: String
+  key_IN: [String!]
+  key_STARTS_WITH: String
+  missionsMissionDetailsAggregate: MissionDetailsMissionsMissionDetailsAggregateInput
+
+  """
+  Return MissionDetails where all of the related MissionDetailsMissionsMissionDetailsConnections match this filter
+  """
+  missionsMissionDetailsConnection_ALL: MissionDetailsMissionsMissionDetailsConnectionWhere
+
+  """
+  Return MissionDetails where none of the related MissionDetailsMissionsMissionDetailsConnections match this filter
+  """
+  missionsMissionDetailsConnection_NONE: MissionDetailsMissionsMissionDetailsConnectionWhere
+
+  """
+  Return MissionDetails where one of the related MissionDetailsMissionsMissionDetailsConnections match this filter
+  """
+  missionsMissionDetailsConnection_SINGLE: MissionDetailsMissionsMissionDetailsConnectionWhere
+
+  """
+  Return MissionDetails where some of the related MissionDetailsMissionsMissionDetailsConnections match this filter
+  """
+  missionsMissionDetailsConnection_SOME: MissionDetailsMissionsMissionDetailsConnectionWhere
+
+  """
+  Return MissionDetails where all of the related Missions match this filter
+  """
+  missionsMissionDetails_ALL: MissionWhere
+
+  """
+  Return MissionDetails where none of the related Missions match this filter
+  """
+  missionsMissionDetails_NONE: MissionWhere
+
+  """
+  Return MissionDetails where one of the related Missions match this filter
+  """
+  missionsMissionDetails_SINGLE: MissionWhere
+
+  """
+  Return MissionDetails where some of the related Missions match this filter
+  """
+  missionsMissionDetails_SOME: MissionWhere
+  value: String
+  value_CONTAINS: String
+  value_ENDS_WITH: String
+  value_IN: [String!]
+  value_STARTS_WITH: String
+}
+
+input MissionDisconnectInput {
+  clientClients: [MissionClientClientsDisconnectFieldInput!]
+  missionDetailsMissionDetails: [MissionMissionDetailsMissionDetailsDisconnectFieldInput!]
+  peopleMission: [MissionPeopleMissionDisconnectFieldInput!]
+}
+
+type MissionEdge {
+  cursor: String!
+  node: Mission!
+}
+
+input MissionMissionDetailsMissionDetailsAggregateInput {
+  AND: [MissionMissionDetailsMissionDetailsAggregateInput!]
+  NOT: MissionMissionDetailsMissionDetailsAggregateInput
+  OR: [MissionMissionDetailsMissionDetailsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: MissionMissionDetailsMissionDetailsNodeAggregationWhereInput
+}
+
+input MissionMissionDetailsMissionDetailsConnectFieldInput {
+  connect: [MissionDetailsConnectInput!]
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: MissionDetailsConnectWhere
+}
+
+type MissionMissionDetailsMissionDetailsConnection {
+  edges: [MissionMissionDetailsMissionDetailsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input MissionMissionDetailsMissionDetailsConnectionSort {
+  node: MissionDetailsSort
+}
+
+input MissionMissionDetailsMissionDetailsConnectionWhere {
+  AND: [MissionMissionDetailsMissionDetailsConnectionWhere!]
+  NOT: MissionMissionDetailsMissionDetailsConnectionWhere
+  OR: [MissionMissionDetailsMissionDetailsConnectionWhere!]
+  node: MissionDetailsWhere
+}
+
+input MissionMissionDetailsMissionDetailsCreateFieldInput {
+  node: MissionDetailsCreateInput!
+}
+
+input MissionMissionDetailsMissionDetailsDeleteFieldInput {
+  delete: MissionDetailsDeleteInput
+  where: MissionMissionDetailsMissionDetailsConnectionWhere
+}
+
+input MissionMissionDetailsMissionDetailsDisconnectFieldInput {
+  disconnect: MissionDetailsDisconnectInput
+  where: MissionMissionDetailsMissionDetailsConnectionWhere
+}
+
+input MissionMissionDetailsMissionDetailsFieldInput {
+  connect: [MissionMissionDetailsMissionDetailsConnectFieldInput!]
+  create: [MissionMissionDetailsMissionDetailsCreateFieldInput!]
+}
+
+type MissionMissionDetailsMissionDetailsMissionDetailsAggregationSelection {
+  count: Int!
+  node: MissionMissionDetailsMissionDetailsMissionDetailsNodeAggregateSelection
+}
+
+type MissionMissionDetailsMissionDetailsMissionDetailsNodeAggregateSelection {
+  key: StringAggregateSelection!
+  value: StringAggregateSelection!
+}
+
+input MissionMissionDetailsMissionDetailsNodeAggregationWhereInput {
+  AND: [MissionMissionDetailsMissionDetailsNodeAggregationWhereInput!]
+  NOT: MissionMissionDetailsMissionDetailsNodeAggregationWhereInput
+  OR: [MissionMissionDetailsMissionDetailsNodeAggregationWhereInput!]
+  key_AVERAGE_LENGTH_EQUAL: Float
+  key_AVERAGE_LENGTH_GT: Float
+  key_AVERAGE_LENGTH_GTE: Float
+  key_AVERAGE_LENGTH_LT: Float
+  key_AVERAGE_LENGTH_LTE: Float
+  key_LONGEST_LENGTH_EQUAL: Int
+  key_LONGEST_LENGTH_GT: Int
+  key_LONGEST_LENGTH_GTE: Int
+  key_LONGEST_LENGTH_LT: Int
+  key_LONGEST_LENGTH_LTE: Int
+  key_SHORTEST_LENGTH_EQUAL: Int
+  key_SHORTEST_LENGTH_GT: Int
+  key_SHORTEST_LENGTH_GTE: Int
+  key_SHORTEST_LENGTH_LT: Int
+  key_SHORTEST_LENGTH_LTE: Int
+  value_AVERAGE_LENGTH_EQUAL: Float
+  value_AVERAGE_LENGTH_GT: Float
+  value_AVERAGE_LENGTH_GTE: Float
+  value_AVERAGE_LENGTH_LT: Float
+  value_AVERAGE_LENGTH_LTE: Float
+  value_LONGEST_LENGTH_EQUAL: Int
+  value_LONGEST_LENGTH_GT: Int
+  value_LONGEST_LENGTH_GTE: Int
+  value_LONGEST_LENGTH_LT: Int
+  value_LONGEST_LENGTH_LTE: Int
+  value_SHORTEST_LENGTH_EQUAL: Int
+  value_SHORTEST_LENGTH_GT: Int
+  value_SHORTEST_LENGTH_GTE: Int
+  value_SHORTEST_LENGTH_LT: Int
+  value_SHORTEST_LENGTH_LTE: Int
+}
+
+type MissionMissionDetailsMissionDetailsRelationship {
+  cursor: String!
+  node: MissionDetails!
+}
+
+input MissionMissionDetailsMissionDetailsUpdateConnectionInput {
+  node: MissionDetailsUpdateInput
+}
+
+input MissionMissionDetailsMissionDetailsUpdateFieldInput {
+  connect: [MissionMissionDetailsMissionDetailsConnectFieldInput!]
+  create: [MissionMissionDetailsMissionDetailsCreateFieldInput!]
+  delete: [MissionMissionDetailsMissionDetailsDeleteFieldInput!]
+  disconnect: [MissionMissionDetailsMissionDetailsDisconnectFieldInput!]
+  update: MissionMissionDetailsMissionDetailsUpdateConnectionInput
+  where: MissionMissionDetailsMissionDetailsConnectionWhere
+}
+
+input MissionOptions {
+  limit: Int
+  offset: Int
+
+  """
+  Specify one or more MissionSort objects to sort Missions by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [MissionSort!]
+}
+
+input MissionPeopleMissionAggregateInput {
+  AND: [MissionPeopleMissionAggregateInput!]
+  NOT: MissionPeopleMissionAggregateInput
+  OR: [MissionPeopleMissionAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: MissionPeopleMissionNodeAggregationWhereInput
+}
+
+input MissionPeopleMissionConnectFieldInput {
+  connect: [PersonConnectInput!]
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: PersonConnectWhere
+}
+
+type MissionPeopleMissionConnection {
+  edges: [MissionPeopleMissionRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input MissionPeopleMissionConnectionSort {
+  node: PersonSort
+}
+
+input MissionPeopleMissionConnectionWhere {
+  AND: [MissionPeopleMissionConnectionWhere!]
+  NOT: MissionPeopleMissionConnectionWhere
+  OR: [MissionPeopleMissionConnectionWhere!]
+  node: PersonWhere
+}
+
+input MissionPeopleMissionCreateFieldInput {
+  node: PersonCreateInput!
+}
+
+input MissionPeopleMissionDeleteFieldInput {
+  delete: PersonDeleteInput
+  where: MissionPeopleMissionConnectionWhere
+}
+
+input MissionPeopleMissionDisconnectFieldInput {
+  disconnect: PersonDisconnectInput
+  where: MissionPeopleMissionConnectionWhere
+}
+
+input MissionPeopleMissionFieldInput {
+  connect: [MissionPeopleMissionConnectFieldInput!]
+  create: [MissionPeopleMissionCreateFieldInput!]
+}
+
+input MissionPeopleMissionNodeAggregationWhereInput {
+  AND: [MissionPeopleMissionNodeAggregationWhereInput!]
+  NOT: MissionPeopleMissionNodeAggregationWhereInput
+  OR: [MissionPeopleMissionNodeAggregationWhereInput!]
+  firstname_AVERAGE_LENGTH_EQUAL: Float
+  firstname_AVERAGE_LENGTH_GT: Float
+  firstname_AVERAGE_LENGTH_GTE: Float
+  firstname_AVERAGE_LENGTH_LT: Float
+  firstname_AVERAGE_LENGTH_LTE: Float
+  firstname_LONGEST_LENGTH_EQUAL: Int
+  firstname_LONGEST_LENGTH_GT: Int
+  firstname_LONGEST_LENGTH_GTE: Int
+  firstname_LONGEST_LENGTH_LT: Int
+  firstname_LONGEST_LENGTH_LTE: Int
+  firstname_SHORTEST_LENGTH_EQUAL: Int
+  firstname_SHORTEST_LENGTH_GT: Int
+  firstname_SHORTEST_LENGTH_GTE: Int
+  firstname_SHORTEST_LENGTH_LT: Int
+  firstname_SHORTEST_LENGTH_LTE: Int
+  lastname_AVERAGE_LENGTH_EQUAL: Float
+  lastname_AVERAGE_LENGTH_GT: Float
+  lastname_AVERAGE_LENGTH_GTE: Float
+  lastname_AVERAGE_LENGTH_LT: Float
+  lastname_AVERAGE_LENGTH_LTE: Float
+  lastname_LONGEST_LENGTH_EQUAL: Int
+  lastname_LONGEST_LENGTH_GT: Int
+  lastname_LONGEST_LENGTH_GTE: Int
+  lastname_LONGEST_LENGTH_LT: Int
+  lastname_LONGEST_LENGTH_LTE: Int
+  lastname_SHORTEST_LENGTH_EQUAL: Int
+  lastname_SHORTEST_LENGTH_GT: Int
+  lastname_SHORTEST_LENGTH_GTE: Int
+  lastname_SHORTEST_LENGTH_LT: Int
+  lastname_SHORTEST_LENGTH_LTE: Int
+}
+
+type MissionPeopleMissionRelationship {
+  cursor: String!
+  node: Person!
+}
+
+input MissionPeopleMissionUpdateConnectionInput {
+  node: PersonUpdateInput
+}
+
+input MissionPeopleMissionUpdateFieldInput {
+  connect: [MissionPeopleMissionConnectFieldInput!]
+  create: [MissionPeopleMissionCreateFieldInput!]
+  delete: [MissionPeopleMissionDeleteFieldInput!]
+  disconnect: [MissionPeopleMissionDisconnectFieldInput!]
+  update: MissionPeopleMissionUpdateConnectionInput
+  where: MissionPeopleMissionConnectionWhere
+}
+
+type MissionPersonPeopleMissionAggregationSelection {
+  count: Int!
+  node: MissionPersonPeopleMissionNodeAggregateSelection
+}
+
+type MissionPersonPeopleMissionNodeAggregateSelection {
+  firstname: StringAggregateSelection!
+  lastname: StringAggregateSelection!
+}
+
+input MissionRelationInput {
+  clientClients: [MissionClientClientsCreateFieldInput!]
+  missionDetailsMissionDetails: [MissionMissionDetailsMissionDetailsCreateFieldInput!]
+  peopleMission: [MissionPeopleMissionCreateFieldInput!]
+}
+
+"""
+Fields to sort Missions by. The order in which sorts are applied is not guaranteed when specifying many fields in one MissionSort object.
+"""
+input MissionSort {
+  from: SortDirection
+  project: SortDirection
+  to: SortDirection
+}
+
+input MissionUpdateInput {
+  clientClients: [MissionClientClientsUpdateFieldInput!]
+  from: Date
+  missionDetailsMissionDetails: [MissionMissionDetailsMissionDetailsUpdateFieldInput!]
+  peopleMission: [MissionPeopleMissionUpdateFieldInput!]
+  project: String
+  to: Date
+}
+
+input MissionWhere {
+  AND: [MissionWhere!]
+  NOT: MissionWhere
+  OR: [MissionWhere!]
+  clientClientsAggregate: MissionClientClientsAggregateInput
+
+  """
+  Return Missions where all of the related MissionClientClientsConnections match this filter
+  """
+  clientClientsConnection_ALL: MissionClientClientsConnectionWhere
+
+  """
+  Return Missions where none of the related MissionClientClientsConnections match this filter
+  """
+  clientClientsConnection_NONE: MissionClientClientsConnectionWhere
+
+  """
+  Return Missions where one of the related MissionClientClientsConnections match this filter
+  """
+  clientClientsConnection_SINGLE: MissionClientClientsConnectionWhere
+
+  """
+  Return Missions where some of the related MissionClientClientsConnections match this filter
+  """
+  clientClientsConnection_SOME: MissionClientClientsConnectionWhere
+
+  """Return Missions where all of the related Clients match this filter"""
+  clientClients_ALL: ClientWhere
+
+  """Return Missions where none of the related Clients match this filter"""
+  clientClients_NONE: ClientWhere
+
+  """Return Missions where one of the related Clients match this filter"""
+  clientClients_SINGLE: ClientWhere
+
+  """Return Missions where some of the related Clients match this filter"""
+  clientClients_SOME: ClientWhere
+  from: Date
+  from_GT: Date
+  from_GTE: Date
+  from_IN: [Date!]
+  from_LT: Date
+  from_LTE: Date
+  missionDetailsMissionDetailsAggregate: MissionMissionDetailsMissionDetailsAggregateInput
+
+  """
+  Return Missions where all of the related MissionMissionDetailsMissionDetailsConnections match this filter
+  """
+  missionDetailsMissionDetailsConnection_ALL: MissionMissionDetailsMissionDetailsConnectionWhere
+
+  """
+  Return Missions where none of the related MissionMissionDetailsMissionDetailsConnections match this filter
+  """
+  missionDetailsMissionDetailsConnection_NONE: MissionMissionDetailsMissionDetailsConnectionWhere
+
+  """
+  Return Missions where one of the related MissionMissionDetailsMissionDetailsConnections match this filter
+  """
+  missionDetailsMissionDetailsConnection_SINGLE: MissionMissionDetailsMissionDetailsConnectionWhere
+
+  """
+  Return Missions where some of the related MissionMissionDetailsMissionDetailsConnections match this filter
+  """
+  missionDetailsMissionDetailsConnection_SOME: MissionMissionDetailsMissionDetailsConnectionWhere
+
+  """
+  Return Missions where all of the related MissionDetails match this filter
+  """
+  missionDetailsMissionDetails_ALL: MissionDetailsWhere
+
+  """
+  Return Missions where none of the related MissionDetails match this filter
+  """
+  missionDetailsMissionDetails_NONE: MissionDetailsWhere
+
+  """
+  Return Missions where one of the related MissionDetails match this filter
+  """
+  missionDetailsMissionDetails_SINGLE: MissionDetailsWhere
+
+  """
+  Return Missions where some of the related MissionDetails match this filter
+  """
+  missionDetailsMissionDetails_SOME: MissionDetailsWhere
+  peopleMissionAggregate: MissionPeopleMissionAggregateInput
+
+  """
+  Return Missions where all of the related MissionPeopleMissionConnections match this filter
+  """
+  peopleMissionConnection_ALL: MissionPeopleMissionConnectionWhere
+
+  """
+  Return Missions where none of the related MissionPeopleMissionConnections match this filter
+  """
+  peopleMissionConnection_NONE: MissionPeopleMissionConnectionWhere
+
+  """
+  Return Missions where one of the related MissionPeopleMissionConnections match this filter
+  """
+  peopleMissionConnection_SINGLE: MissionPeopleMissionConnectionWhere
+
+  """
+  Return Missions where some of the related MissionPeopleMissionConnections match this filter
+  """
+  peopleMissionConnection_SOME: MissionPeopleMissionConnectionWhere
+
+  """Return Missions where all of the related People match this filter"""
+  peopleMission_ALL: PersonWhere
+
+  """Return Missions where none of the related People match this filter"""
+  peopleMission_NONE: PersonWhere
+
+  """Return Missions where one of the related People match this filter"""
+  peopleMission_SINGLE: PersonWhere
+
+  """Return Missions where some of the related People match this filter"""
+  peopleMission_SOME: PersonWhere
+  project: String
+  project_CONTAINS: String
+  project_ENDS_WITH: String
+  project_IN: [String!]
+  project_STARTS_WITH: String
+  to: Date
+  to_GT: Date
+  to_GTE: Date
+  to_IN: [Date]
+  to_LT: Date
+  to_LTE: Date
+}
+
+type MissionsConnection {
+  edges: [MissionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createAgences(input: [AgenceCreateInput!]!): CreateAgencesMutationResponse!
+  createClients(input: [ClientCreateInput!]!): CreateClientsMutationResponse!
+  createCompanies(input: [CompanyCreateInput!]!): CreateCompaniesMutationResponse!
+  createMissionDetails(input: [MissionDetailsCreateInput!]!): CreateMissionDetailsMutationResponse!
+  createMissions(input: [MissionCreateInput!]!): CreateMissionsMutationResponse!
+  createPeople(input: [PersonCreateInput!]!): CreatePeopleMutationResponse!
+  createRoles(input: [RoleCreateInput!]!): CreateRolesMutationResponse!
+  deleteAgences(delete: AgenceDeleteInput, where: AgenceWhere): DeleteInfo!
+  deleteClients(delete: ClientDeleteInput, where: ClientWhere): DeleteInfo!
+  deleteCompanies(delete: CompanyDeleteInput, where: CompanyWhere): DeleteInfo!
+  deleteMissionDetails(delete: MissionDetailsDeleteInput, where: MissionDetailsWhere): DeleteInfo!
+  deleteMissions(delete: MissionDeleteInput, where: MissionWhere): DeleteInfo!
+  deletePeople(delete: PersonDeleteInput, where: PersonWhere): DeleteInfo!
+  deleteRoles(delete: RoleDeleteInput, where: RoleWhere): DeleteInfo!
+  updateAgences(connect: AgenceConnectInput, create: AgenceRelationInput, delete: AgenceDeleteInput, disconnect: AgenceDisconnectInput, update: AgenceUpdateInput, where: AgenceWhere): UpdateAgencesMutationResponse!
+  updateClients(connect: ClientConnectInput, create: ClientRelationInput, delete: ClientDeleteInput, disconnect: ClientDisconnectInput, update: ClientUpdateInput, where: ClientWhere): UpdateClientsMutationResponse!
+  updateCompanies(connect: CompanyConnectInput, create: CompanyRelationInput, delete: CompanyDeleteInput, disconnect: CompanyDisconnectInput, update: CompanyUpdateInput, where: CompanyWhere): UpdateCompaniesMutationResponse!
+  updateMissionDetails(connect: MissionDetailsConnectInput, create: MissionDetailsRelationInput, delete: MissionDetailsDeleteInput, disconnect: MissionDetailsDisconnectInput, update: MissionDetailsUpdateInput, where: MissionDetailsWhere): UpdateMissionDetailsMutationResponse!
+  updateMissions(connect: MissionConnectInput, create: MissionRelationInput, delete: MissionDeleteInput, disconnect: MissionDisconnectInput, update: MissionUpdateInput, where: MissionWhere): UpdateMissionsMutationResponse!
+  updatePeople(connect: PersonConnectInput, create: PersonRelationInput, delete: PersonDeleteInput, disconnect: PersonDisconnectInput, update: PersonUpdateInput, where: PersonWhere): UpdatePeopleMutationResponse!
+  updateRoles(connect: RoleConnectInput, create: RoleRelationInput, delete: RoleDeleteInput, disconnect: RoleDisconnectInput, update: RoleUpdateInput, where: RoleWhere): UpdateRolesMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type PeopleConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Person {
+  birthdate: Date!
+  firstname: String!
+  hasRoleRoles(directed: Boolean = true, options: RoleOptions, where: RoleWhere): [Role!]!
+  hasRoleRolesAggregate(directed: Boolean = true, where: RoleWhere): PersonRoleHasRoleRolesAggregationSelection
+  hasRoleRolesConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonHasRoleRolesConnectionSort!], where: PersonHasRoleRolesConnectionWhere): PersonHasRoleRolesConnection!
+  lastname: String!
+  mainAgencyAgences(directed: Boolean = true, options: AgenceOptions, where: AgenceWhere): [Agence!]!
+  mainAgencyAgencesAggregate(directed: Boolean = true, where: AgenceWhere): PersonAgenceMainAgencyAgencesAggregationSelection
+  mainAgencyAgencesConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonMainAgencyAgencesConnectionSort!], where: PersonMainAgencyAgencesConnectionWhere): PersonMainAgencyAgencesConnection!
+  missionMissions(directed: Boolean = true, options: MissionOptions, where: MissionWhere): [Mission!]!
+  missionMissionsAggregate(directed: Boolean = true, where: MissionWhere): PersonMissionMissionMissionsAggregationSelection
+  missionMissionsConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonMissionMissionsConnectionSort!], where: PersonMissionMissionsConnectionWhere): PersonMissionMissionsConnection!
+  worksForCompanies(directed: Boolean = true, options: CompanyOptions, where: CompanyWhere): [Company!]!
+  worksForCompaniesAggregate(directed: Boolean = true, where: CompanyWhere): PersonCompanyWorksForCompaniesAggregationSelection
+  worksForCompaniesConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonWorksForCompaniesConnectionSort!], where: PersonWorksForCompaniesConnectionWhere): PersonWorksForCompaniesConnection!
+}
+
+type PersonAgenceMainAgencyAgencesAggregationSelection {
+  count: Int!
+  node: PersonAgenceMainAgencyAgencesNodeAggregateSelection
+}
+
+type PersonAgenceMainAgencyAgencesNodeAggregateSelection {
+  city: StringAggregateSelection!
+}
+
+type PersonAggregateSelection {
+  count: Int!
+  firstname: StringAggregateSelection!
+  lastname: StringAggregateSelection!
+}
+
+type PersonCompanyWorksForCompaniesAggregationSelection {
+  count: Int!
+  node: PersonCompanyWorksForCompaniesNodeAggregateSelection
+}
+
+type PersonCompanyWorksForCompaniesNodeAggregateSelection {
+  name: StringAggregateSelection!
+}
+
+input PersonConnectInput {
+  hasRoleRoles: [PersonHasRoleRolesConnectFieldInput!]
+  mainAgencyAgences: [PersonMainAgencyAgencesConnectFieldInput!]
+  missionMissions: [PersonMissionMissionsConnectFieldInput!]
+  worksForCompanies: [PersonWorksForCompaniesConnectFieldInput!]
+}
+
+input PersonConnectWhere {
+  node: PersonWhere!
+}
+
+input PersonCreateInput {
+  birthdate: Date!
+  firstname: String!
+  hasRoleRoles: PersonHasRoleRolesFieldInput
+  lastname: String!
+  mainAgencyAgences: PersonMainAgencyAgencesFieldInput
+  missionMissions: PersonMissionMissionsFieldInput
+  worksForCompanies: PersonWorksForCompaniesFieldInput
+}
+
+input PersonDeleteInput {
+  hasRoleRoles: [PersonHasRoleRolesDeleteFieldInput!]
+  mainAgencyAgences: [PersonMainAgencyAgencesDeleteFieldInput!]
+  missionMissions: [PersonMissionMissionsDeleteFieldInput!]
+  worksForCompanies: [PersonWorksForCompaniesDeleteFieldInput!]
+}
+
+input PersonDisconnectInput {
+  hasRoleRoles: [PersonHasRoleRolesDisconnectFieldInput!]
+  mainAgencyAgences: [PersonMainAgencyAgencesDisconnectFieldInput!]
+  missionMissions: [PersonMissionMissionsDisconnectFieldInput!]
+  worksForCompanies: [PersonWorksForCompaniesDisconnectFieldInput!]
+}
+
+type PersonEdge {
+  cursor: String!
+  node: Person!
+}
+
+input PersonHasRoleRolesAggregateInput {
+  AND: [PersonHasRoleRolesAggregateInput!]
+  NOT: PersonHasRoleRolesAggregateInput
+  OR: [PersonHasRoleRolesAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: PersonHasRoleRolesNodeAggregationWhereInput
+}
+
+input PersonHasRoleRolesConnectFieldInput {
+  connect: [RoleConnectInput!]
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: RoleConnectWhere
+}
+
+type PersonHasRoleRolesConnection {
+  edges: [PersonHasRoleRolesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input PersonHasRoleRolesConnectionSort {
+  node: RoleSort
+}
+
+input PersonHasRoleRolesConnectionWhere {
+  AND: [PersonHasRoleRolesConnectionWhere!]
+  NOT: PersonHasRoleRolesConnectionWhere
+  OR: [PersonHasRoleRolesConnectionWhere!]
+  node: RoleWhere
+}
+
+input PersonHasRoleRolesCreateFieldInput {
+  node: RoleCreateInput!
+}
+
+input PersonHasRoleRolesDeleteFieldInput {
+  delete: RoleDeleteInput
+  where: PersonHasRoleRolesConnectionWhere
+}
+
+input PersonHasRoleRolesDisconnectFieldInput {
+  disconnect: RoleDisconnectInput
+  where: PersonHasRoleRolesConnectionWhere
+}
+
+input PersonHasRoleRolesFieldInput {
+  connect: [PersonHasRoleRolesConnectFieldInput!]
+  create: [PersonHasRoleRolesCreateFieldInput!]
+}
+
+input PersonHasRoleRolesNodeAggregationWhereInput {
+  AND: [PersonHasRoleRolesNodeAggregationWhereInput!]
+  NOT: PersonHasRoleRolesNodeAggregationWhereInput
+  OR: [PersonHasRoleRolesNodeAggregationWhereInput!]
+  title_AVERAGE_LENGTH_EQUAL: Float
+  title_AVERAGE_LENGTH_GT: Float
+  title_AVERAGE_LENGTH_GTE: Float
+  title_AVERAGE_LENGTH_LT: Float
+  title_AVERAGE_LENGTH_LTE: Float
+  title_LONGEST_LENGTH_EQUAL: Int
+  title_LONGEST_LENGTH_GT: Int
+  title_LONGEST_LENGTH_GTE: Int
+  title_LONGEST_LENGTH_LT: Int
+  title_LONGEST_LENGTH_LTE: Int
+  title_SHORTEST_LENGTH_EQUAL: Int
+  title_SHORTEST_LENGTH_GT: Int
+  title_SHORTEST_LENGTH_GTE: Int
+  title_SHORTEST_LENGTH_LT: Int
+  title_SHORTEST_LENGTH_LTE: Int
+}
+
+type PersonHasRoleRolesRelationship {
+  cursor: String!
+  node: Role!
+}
+
+input PersonHasRoleRolesUpdateConnectionInput {
+  node: RoleUpdateInput
+}
+
+input PersonHasRoleRolesUpdateFieldInput {
+  connect: [PersonHasRoleRolesConnectFieldInput!]
+  create: [PersonHasRoleRolesCreateFieldInput!]
+  delete: [PersonHasRoleRolesDeleteFieldInput!]
+  disconnect: [PersonHasRoleRolesDisconnectFieldInput!]
+  update: PersonHasRoleRolesUpdateConnectionInput
+  where: PersonHasRoleRolesConnectionWhere
+}
+
+input PersonMainAgencyAgencesAggregateInput {
+  AND: [PersonMainAgencyAgencesAggregateInput!]
+  NOT: PersonMainAgencyAgencesAggregateInput
+  OR: [PersonMainAgencyAgencesAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: PersonMainAgencyAgencesNodeAggregationWhereInput
+}
+
+input PersonMainAgencyAgencesConnectFieldInput {
+  connect: [AgenceConnectInput!]
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: AgenceConnectWhere
+}
+
+type PersonMainAgencyAgencesConnection {
+  edges: [PersonMainAgencyAgencesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input PersonMainAgencyAgencesConnectionSort {
+  node: AgenceSort
+}
+
+input PersonMainAgencyAgencesConnectionWhere {
+  AND: [PersonMainAgencyAgencesConnectionWhere!]
+  NOT: PersonMainAgencyAgencesConnectionWhere
+  OR: [PersonMainAgencyAgencesConnectionWhere!]
+  node: AgenceWhere
+}
+
+input PersonMainAgencyAgencesCreateFieldInput {
+  node: AgenceCreateInput!
+}
+
+input PersonMainAgencyAgencesDeleteFieldInput {
+  delete: AgenceDeleteInput
+  where: PersonMainAgencyAgencesConnectionWhere
+}
+
+input PersonMainAgencyAgencesDisconnectFieldInput {
+  disconnect: AgenceDisconnectInput
+  where: PersonMainAgencyAgencesConnectionWhere
+}
+
+input PersonMainAgencyAgencesFieldInput {
+  connect: [PersonMainAgencyAgencesConnectFieldInput!]
+  create: [PersonMainAgencyAgencesCreateFieldInput!]
+}
+
+input PersonMainAgencyAgencesNodeAggregationWhereInput {
+  AND: [PersonMainAgencyAgencesNodeAggregationWhereInput!]
+  NOT: PersonMainAgencyAgencesNodeAggregationWhereInput
+  OR: [PersonMainAgencyAgencesNodeAggregationWhereInput!]
+  city_AVERAGE_LENGTH_EQUAL: Float
+  city_AVERAGE_LENGTH_GT: Float
+  city_AVERAGE_LENGTH_GTE: Float
+  city_AVERAGE_LENGTH_LT: Float
+  city_AVERAGE_LENGTH_LTE: Float
+  city_LONGEST_LENGTH_EQUAL: Int
+  city_LONGEST_LENGTH_GT: Int
+  city_LONGEST_LENGTH_GTE: Int
+  city_LONGEST_LENGTH_LT: Int
+  city_LONGEST_LENGTH_LTE: Int
+  city_SHORTEST_LENGTH_EQUAL: Int
+  city_SHORTEST_LENGTH_GT: Int
+  city_SHORTEST_LENGTH_GTE: Int
+  city_SHORTEST_LENGTH_LT: Int
+  city_SHORTEST_LENGTH_LTE: Int
+}
+
+type PersonMainAgencyAgencesRelationship {
+  cursor: String!
+  node: Agence!
+}
+
+input PersonMainAgencyAgencesUpdateConnectionInput {
+  node: AgenceUpdateInput
+}
+
+input PersonMainAgencyAgencesUpdateFieldInput {
+  connect: [PersonMainAgencyAgencesConnectFieldInput!]
+  create: [PersonMainAgencyAgencesCreateFieldInput!]
+  delete: [PersonMainAgencyAgencesDeleteFieldInput!]
+  disconnect: [PersonMainAgencyAgencesDisconnectFieldInput!]
+  update: PersonMainAgencyAgencesUpdateConnectionInput
+  where: PersonMainAgencyAgencesConnectionWhere
+}
+
+type PersonMissionMissionMissionsAggregationSelection {
+  count: Int!
+  node: PersonMissionMissionMissionsNodeAggregateSelection
+}
+
+type PersonMissionMissionMissionsNodeAggregateSelection {
+  project: StringAggregateSelection!
+}
+
+input PersonMissionMissionsAggregateInput {
+  AND: [PersonMissionMissionsAggregateInput!]
+  NOT: PersonMissionMissionsAggregateInput
+  OR: [PersonMissionMissionsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: PersonMissionMissionsNodeAggregationWhereInput
+}
+
+input PersonMissionMissionsConnectFieldInput {
+  connect: [MissionConnectInput!]
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: MissionConnectWhere
+}
+
+type PersonMissionMissionsConnection {
+  edges: [PersonMissionMissionsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input PersonMissionMissionsConnectionSort {
+  node: MissionSort
+}
+
+input PersonMissionMissionsConnectionWhere {
+  AND: [PersonMissionMissionsConnectionWhere!]
+  NOT: PersonMissionMissionsConnectionWhere
+  OR: [PersonMissionMissionsConnectionWhere!]
+  node: MissionWhere
+}
+
+input PersonMissionMissionsCreateFieldInput {
+  node: MissionCreateInput!
+}
+
+input PersonMissionMissionsDeleteFieldInput {
+  delete: MissionDeleteInput
+  where: PersonMissionMissionsConnectionWhere
+}
+
+input PersonMissionMissionsDisconnectFieldInput {
+  disconnect: MissionDisconnectInput
+  where: PersonMissionMissionsConnectionWhere
+}
+
+input PersonMissionMissionsFieldInput {
+  connect: [PersonMissionMissionsConnectFieldInput!]
+  create: [PersonMissionMissionsCreateFieldInput!]
+}
+
+input PersonMissionMissionsNodeAggregationWhereInput {
+  AND: [PersonMissionMissionsNodeAggregationWhereInput!]
+  NOT: PersonMissionMissionsNodeAggregationWhereInput
+  OR: [PersonMissionMissionsNodeAggregationWhereInput!]
+  project_AVERAGE_LENGTH_EQUAL: Float
+  project_AVERAGE_LENGTH_GT: Float
+  project_AVERAGE_LENGTH_GTE: Float
+  project_AVERAGE_LENGTH_LT: Float
+  project_AVERAGE_LENGTH_LTE: Float
+  project_LONGEST_LENGTH_EQUAL: Int
+  project_LONGEST_LENGTH_GT: Int
+  project_LONGEST_LENGTH_GTE: Int
+  project_LONGEST_LENGTH_LT: Int
+  project_LONGEST_LENGTH_LTE: Int
+  project_SHORTEST_LENGTH_EQUAL: Int
+  project_SHORTEST_LENGTH_GT: Int
+  project_SHORTEST_LENGTH_GTE: Int
+  project_SHORTEST_LENGTH_LT: Int
+  project_SHORTEST_LENGTH_LTE: Int
+}
+
+type PersonMissionMissionsRelationship {
+  cursor: String!
+  node: Mission!
+}
+
+input PersonMissionMissionsUpdateConnectionInput {
+  node: MissionUpdateInput
+}
+
+input PersonMissionMissionsUpdateFieldInput {
+  connect: [PersonMissionMissionsConnectFieldInput!]
+  create: [PersonMissionMissionsCreateFieldInput!]
+  delete: [PersonMissionMissionsDeleteFieldInput!]
+  disconnect: [PersonMissionMissionsDisconnectFieldInput!]
+  update: PersonMissionMissionsUpdateConnectionInput
+  where: PersonMissionMissionsConnectionWhere
+}
+
+input PersonOptions {
+  limit: Int
+  offset: Int
+
+  """
+  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [PersonSort!]
+}
+
+input PersonRelationInput {
+  hasRoleRoles: [PersonHasRoleRolesCreateFieldInput!]
+  mainAgencyAgences: [PersonMainAgencyAgencesCreateFieldInput!]
+  missionMissions: [PersonMissionMissionsCreateFieldInput!]
+  worksForCompanies: [PersonWorksForCompaniesCreateFieldInput!]
+}
+
+type PersonRoleHasRoleRolesAggregationSelection {
+  count: Int!
+  node: PersonRoleHasRoleRolesNodeAggregateSelection
+}
+
+type PersonRoleHasRoleRolesNodeAggregateSelection {
+  title: StringAggregateSelection!
+}
+
+"""
+Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
+"""
+input PersonSort {
+  birthdate: SortDirection
+  firstname: SortDirection
+  lastname: SortDirection
+}
+
+input PersonUpdateInput {
+  birthdate: Date
+  firstname: String
+  hasRoleRoles: [PersonHasRoleRolesUpdateFieldInput!]
+  lastname: String
+  mainAgencyAgences: [PersonMainAgencyAgencesUpdateFieldInput!]
+  missionMissions: [PersonMissionMissionsUpdateFieldInput!]
+  worksForCompanies: [PersonWorksForCompaniesUpdateFieldInput!]
+}
+
+input PersonWhere {
+  AND: [PersonWhere!]
+  NOT: PersonWhere
+  OR: [PersonWhere!]
+  birthdate: Date
+  birthdate_GT: Date
+  birthdate_GTE: Date
+  birthdate_IN: [Date!]
+  birthdate_LT: Date
+  birthdate_LTE: Date
+  firstname: String
+  firstname_CONTAINS: String
+  firstname_ENDS_WITH: String
+  firstname_IN: [String!]
+  firstname_STARTS_WITH: String
+  hasRoleRolesAggregate: PersonHasRoleRolesAggregateInput
+
+  """
+  Return People where all of the related PersonHasRoleRolesConnections match this filter
+  """
+  hasRoleRolesConnection_ALL: PersonHasRoleRolesConnectionWhere
+
+  """
+  Return People where none of the related PersonHasRoleRolesConnections match this filter
+  """
+  hasRoleRolesConnection_NONE: PersonHasRoleRolesConnectionWhere
+
+  """
+  Return People where one of the related PersonHasRoleRolesConnections match this filter
+  """
+  hasRoleRolesConnection_SINGLE: PersonHasRoleRolesConnectionWhere
+
+  """
+  Return People where some of the related PersonHasRoleRolesConnections match this filter
+  """
+  hasRoleRolesConnection_SOME: PersonHasRoleRolesConnectionWhere
+
+  """Return People where all of the related Roles match this filter"""
+  hasRoleRoles_ALL: RoleWhere
+
+  """Return People where none of the related Roles match this filter"""
+  hasRoleRoles_NONE: RoleWhere
+
+  """Return People where one of the related Roles match this filter"""
+  hasRoleRoles_SINGLE: RoleWhere
+
+  """Return People where some of the related Roles match this filter"""
+  hasRoleRoles_SOME: RoleWhere
+  lastname: String
+  lastname_CONTAINS: String
+  lastname_ENDS_WITH: String
+  lastname_IN: [String!]
+  lastname_STARTS_WITH: String
+  mainAgencyAgencesAggregate: PersonMainAgencyAgencesAggregateInput
+
+  """
+  Return People where all of the related PersonMainAgencyAgencesConnections match this filter
+  """
+  mainAgencyAgencesConnection_ALL: PersonMainAgencyAgencesConnectionWhere
+
+  """
+  Return People where none of the related PersonMainAgencyAgencesConnections match this filter
+  """
+  mainAgencyAgencesConnection_NONE: PersonMainAgencyAgencesConnectionWhere
+
+  """
+  Return People where one of the related PersonMainAgencyAgencesConnections match this filter
+  """
+  mainAgencyAgencesConnection_SINGLE: PersonMainAgencyAgencesConnectionWhere
+
+  """
+  Return People where some of the related PersonMainAgencyAgencesConnections match this filter
+  """
+  mainAgencyAgencesConnection_SOME: PersonMainAgencyAgencesConnectionWhere
+
+  """Return People where all of the related Agences match this filter"""
+  mainAgencyAgences_ALL: AgenceWhere
+
+  """Return People where none of the related Agences match this filter"""
+  mainAgencyAgences_NONE: AgenceWhere
+
+  """Return People where one of the related Agences match this filter"""
+  mainAgencyAgences_SINGLE: AgenceWhere
+
+  """Return People where some of the related Agences match this filter"""
+  mainAgencyAgences_SOME: AgenceWhere
+  missionMissionsAggregate: PersonMissionMissionsAggregateInput
+
+  """
+  Return People where all of the related PersonMissionMissionsConnections match this filter
+  """
+  missionMissionsConnection_ALL: PersonMissionMissionsConnectionWhere
+
+  """
+  Return People where none of the related PersonMissionMissionsConnections match this filter
+  """
+  missionMissionsConnection_NONE: PersonMissionMissionsConnectionWhere
+
+  """
+  Return People where one of the related PersonMissionMissionsConnections match this filter
+  """
+  missionMissionsConnection_SINGLE: PersonMissionMissionsConnectionWhere
+
+  """
+  Return People where some of the related PersonMissionMissionsConnections match this filter
+  """
+  missionMissionsConnection_SOME: PersonMissionMissionsConnectionWhere
+
+  """Return People where all of the related Missions match this filter"""
+  missionMissions_ALL: MissionWhere
+
+  """Return People where none of the related Missions match this filter"""
+  missionMissions_NONE: MissionWhere
+
+  """Return People where one of the related Missions match this filter"""
+  missionMissions_SINGLE: MissionWhere
+
+  """Return People where some of the related Missions match this filter"""
+  missionMissions_SOME: MissionWhere
+  worksForCompaniesAggregate: PersonWorksForCompaniesAggregateInput
+
+  """
+  Return People where all of the related PersonWorksForCompaniesConnections match this filter
+  """
+  worksForCompaniesConnection_ALL: PersonWorksForCompaniesConnectionWhere
+
+  """
+  Return People where none of the related PersonWorksForCompaniesConnections match this filter
+  """
+  worksForCompaniesConnection_NONE: PersonWorksForCompaniesConnectionWhere
+
+  """
+  Return People where one of the related PersonWorksForCompaniesConnections match this filter
+  """
+  worksForCompaniesConnection_SINGLE: PersonWorksForCompaniesConnectionWhere
+
+  """
+  Return People where some of the related PersonWorksForCompaniesConnections match this filter
+  """
+  worksForCompaniesConnection_SOME: PersonWorksForCompaniesConnectionWhere
+
+  """Return People where all of the related Companies match this filter"""
+  worksForCompanies_ALL: CompanyWhere
+
+  """Return People where none of the related Companies match this filter"""
+  worksForCompanies_NONE: CompanyWhere
+
+  """Return People where one of the related Companies match this filter"""
+  worksForCompanies_SINGLE: CompanyWhere
+
+  """Return People where some of the related Companies match this filter"""
+  worksForCompanies_SOME: CompanyWhere
+}
+
+input PersonWorksForCompaniesAggregateInput {
+  AND: [PersonWorksForCompaniesAggregateInput!]
+  NOT: PersonWorksForCompaniesAggregateInput
+  OR: [PersonWorksForCompaniesAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: PersonWorksForCompaniesNodeAggregationWhereInput
+}
+
+input PersonWorksForCompaniesConnectFieldInput {
+  connect: [CompanyConnectInput!]
+  edge: WorksForPropertiesCreateInput!
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: CompanyConnectWhere
+}
+
+type PersonWorksForCompaniesConnection {
+  edges: [PersonWorksForCompaniesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input PersonWorksForCompaniesConnectionSort {
+  edge: WorksForPropertiesSort
+  node: CompanySort
+}
+
+input PersonWorksForCompaniesConnectionWhere {
+  AND: [PersonWorksForCompaniesConnectionWhere!]
+  NOT: PersonWorksForCompaniesConnectionWhere
+  OR: [PersonWorksForCompaniesConnectionWhere!]
+  edge: WorksForPropertiesWhere
+  node: CompanyWhere
+}
+
+input PersonWorksForCompaniesCreateFieldInput {
+  edge: WorksForPropertiesCreateInput!
+  node: CompanyCreateInput!
+}
+
+input PersonWorksForCompaniesDeleteFieldInput {
+  delete: CompanyDeleteInput
+  where: PersonWorksForCompaniesConnectionWhere
+}
+
+input PersonWorksForCompaniesDisconnectFieldInput {
+  disconnect: CompanyDisconnectInput
+  where: PersonWorksForCompaniesConnectionWhere
+}
+
+input PersonWorksForCompaniesFieldInput {
+  connect: [PersonWorksForCompaniesConnectFieldInput!]
+  create: [PersonWorksForCompaniesCreateFieldInput!]
+}
+
+input PersonWorksForCompaniesNodeAggregationWhereInput {
+  AND: [PersonWorksForCompaniesNodeAggregationWhereInput!]
+  NOT: PersonWorksForCompaniesNodeAggregationWhereInput
+  OR: [PersonWorksForCompaniesNodeAggregationWhereInput!]
+  name_AVERAGE_LENGTH_EQUAL: Float
+  name_AVERAGE_LENGTH_GT: Float
+  name_AVERAGE_LENGTH_GTE: Float
+  name_AVERAGE_LENGTH_LT: Float
+  name_AVERAGE_LENGTH_LTE: Float
+  name_LONGEST_LENGTH_EQUAL: Int
+  name_LONGEST_LENGTH_GT: Int
+  name_LONGEST_LENGTH_GTE: Int
+  name_LONGEST_LENGTH_LT: Int
+  name_LONGEST_LENGTH_LTE: Int
+  name_SHORTEST_LENGTH_EQUAL: Int
+  name_SHORTEST_LENGTH_GT: Int
+  name_SHORTEST_LENGTH_GTE: Int
+  name_SHORTEST_LENGTH_LT: Int
+  name_SHORTEST_LENGTH_LTE: Int
+}
+
+type PersonWorksForCompaniesRelationship {
+  cursor: String!
+  node: Company!
+  properties: WorksForProperties!
+}
+
+input PersonWorksForCompaniesUpdateConnectionInput {
+  edge: WorksForPropertiesUpdateInput
+  node: CompanyUpdateInput
+}
+
+input PersonWorksForCompaniesUpdateFieldInput {
+  connect: [PersonWorksForCompaniesConnectFieldInput!]
+  create: [PersonWorksForCompaniesCreateFieldInput!]
+  delete: [PersonWorksForCompaniesDeleteFieldInput!]
+  disconnect: [PersonWorksForCompaniesDisconnectFieldInput!]
+  update: PersonWorksForCompaniesUpdateConnectionInput
+  where: PersonWorksForCompaniesConnectionWhere
+}
+
+type Query {
+  agences(options: AgenceOptions, where: AgenceWhere): [Agence!]!
+  agencesAggregate(where: AgenceWhere): AgenceAggregateSelection!
+  agencesConnection(after: String, first: Int, sort: [AgenceSort], where: AgenceWhere): AgencesConnection!
+  clients(options: ClientOptions, where: ClientWhere): [Client!]!
+  clientsAggregate(where: ClientWhere): ClientAggregateSelection!
+  clientsConnection(after: String, first: Int, sort: [ClientSort], where: ClientWhere): ClientsConnection!
+  companies(options: CompanyOptions, where: CompanyWhere): [Company!]!
+  companiesAggregate(where: CompanyWhere): CompanyAggregateSelection!
+  companiesConnection(after: String, first: Int, sort: [CompanySort], where: CompanyWhere): CompaniesConnection!
+  missionDetails(options: MissionDetailsOptions, where: MissionDetailsWhere): [MissionDetails!]!
+  missionDetailsAggregate(where: MissionDetailsWhere): MissionDetailsAggregateSelection!
+  missionDetailsConnection(after: String, first: Int, sort: [MissionDetailsSort], where: MissionDetailsWhere): MissionDetailsConnection!
+  missions(options: MissionOptions, where: MissionWhere): [Mission!]!
+  missionsAggregate(where: MissionWhere): MissionAggregateSelection!
+  missionsConnection(after: String, first: Int, sort: [MissionSort], where: MissionWhere): MissionsConnection!
+  people(options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleAggregate(where: PersonWhere): PersonAggregateSelection!
+  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  roles(options: RoleOptions, where: RoleWhere): [Role!]!
+  rolesAggregate(where: RoleWhere): RoleAggregateSelection!
+  rolesConnection(after: String, first: Int, sort: [RoleSort], where: RoleWhere): RolesConnection!
+}
+
+type Role {
+  peopleHasRole(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleHasRoleAggregate(directed: Boolean = true, where: PersonWhere): RolePersonPeopleHasRoleAggregationSelection
+  peopleHasRoleConnection(after: String, directed: Boolean = true, first: Int, sort: [RolePeopleHasRoleConnectionSort!], where: RolePeopleHasRoleConnectionWhere): RolePeopleHasRoleConnection!
+  title: String!
+}
+
+type RoleAggregateSelection {
+  count: Int!
+  title: StringAggregateSelection!
+}
+
+input RoleConnectInput {
+  peopleHasRole: [RolePeopleHasRoleConnectFieldInput!]
+}
+
+input RoleConnectWhere {
+  node: RoleWhere!
+}
+
+input RoleCreateInput {
+  peopleHasRole: RolePeopleHasRoleFieldInput
+  title: String!
+}
+
+input RoleDeleteInput {
+  peopleHasRole: [RolePeopleHasRoleDeleteFieldInput!]
+}
+
+input RoleDisconnectInput {
+  peopleHasRole: [RolePeopleHasRoleDisconnectFieldInput!]
+}
+
+type RoleEdge {
+  cursor: String!
+  node: Role!
+}
+
+input RoleOptions {
+  limit: Int
+  offset: Int
+
+  """
+  Specify one or more RoleSort objects to sort Roles by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [RoleSort!]
+}
+
+input RolePeopleHasRoleAggregateInput {
+  AND: [RolePeopleHasRoleAggregateInput!]
+  NOT: RolePeopleHasRoleAggregateInput
+  OR: [RolePeopleHasRoleAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: RolePeopleHasRoleNodeAggregationWhereInput
+}
+
+input RolePeopleHasRoleConnectFieldInput {
+  connect: [PersonConnectInput!]
+
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
+  overwrite: Boolean! = true
+  where: PersonConnectWhere
+}
+
+type RolePeopleHasRoleConnection {
+  edges: [RolePeopleHasRoleRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input RolePeopleHasRoleConnectionSort {
+  node: PersonSort
+}
+
+input RolePeopleHasRoleConnectionWhere {
+  AND: [RolePeopleHasRoleConnectionWhere!]
+  NOT: RolePeopleHasRoleConnectionWhere
+  OR: [RolePeopleHasRoleConnectionWhere!]
+  node: PersonWhere
+}
+
+input RolePeopleHasRoleCreateFieldInput {
+  node: PersonCreateInput!
+}
+
+input RolePeopleHasRoleDeleteFieldInput {
+  delete: PersonDeleteInput
+  where: RolePeopleHasRoleConnectionWhere
+}
+
+input RolePeopleHasRoleDisconnectFieldInput {
+  disconnect: PersonDisconnectInput
+  where: RolePeopleHasRoleConnectionWhere
+}
+
+input RolePeopleHasRoleFieldInput {
+  connect: [RolePeopleHasRoleConnectFieldInput!]
+  create: [RolePeopleHasRoleCreateFieldInput!]
+}
+
+input RolePeopleHasRoleNodeAggregationWhereInput {
+  AND: [RolePeopleHasRoleNodeAggregationWhereInput!]
+  NOT: RolePeopleHasRoleNodeAggregationWhereInput
+  OR: [RolePeopleHasRoleNodeAggregationWhereInput!]
+  firstname_AVERAGE_LENGTH_EQUAL: Float
+  firstname_AVERAGE_LENGTH_GT: Float
+  firstname_AVERAGE_LENGTH_GTE: Float
+  firstname_AVERAGE_LENGTH_LT: Float
+  firstname_AVERAGE_LENGTH_LTE: Float
+  firstname_LONGEST_LENGTH_EQUAL: Int
+  firstname_LONGEST_LENGTH_GT: Int
+  firstname_LONGEST_LENGTH_GTE: Int
+  firstname_LONGEST_LENGTH_LT: Int
+  firstname_LONGEST_LENGTH_LTE: Int
+  firstname_SHORTEST_LENGTH_EQUAL: Int
+  firstname_SHORTEST_LENGTH_GT: Int
+  firstname_SHORTEST_LENGTH_GTE: Int
+  firstname_SHORTEST_LENGTH_LT: Int
+  firstname_SHORTEST_LENGTH_LTE: Int
+  lastname_AVERAGE_LENGTH_EQUAL: Float
+  lastname_AVERAGE_LENGTH_GT: Float
+  lastname_AVERAGE_LENGTH_GTE: Float
+  lastname_AVERAGE_LENGTH_LT: Float
+  lastname_AVERAGE_LENGTH_LTE: Float
+  lastname_LONGEST_LENGTH_EQUAL: Int
+  lastname_LONGEST_LENGTH_GT: Int
+  lastname_LONGEST_LENGTH_GTE: Int
+  lastname_LONGEST_LENGTH_LT: Int
+  lastname_LONGEST_LENGTH_LTE: Int
+  lastname_SHORTEST_LENGTH_EQUAL: Int
+  lastname_SHORTEST_LENGTH_GT: Int
+  lastname_SHORTEST_LENGTH_GTE: Int
+  lastname_SHORTEST_LENGTH_LT: Int
+  lastname_SHORTEST_LENGTH_LTE: Int
+}
+
+type RolePeopleHasRoleRelationship {
+  cursor: String!
+  node: Person!
+}
+
+input RolePeopleHasRoleUpdateConnectionInput {
+  node: PersonUpdateInput
+}
+
+input RolePeopleHasRoleUpdateFieldInput {
+  connect: [RolePeopleHasRoleConnectFieldInput!]
+  create: [RolePeopleHasRoleCreateFieldInput!]
+  delete: [RolePeopleHasRoleDeleteFieldInput!]
+  disconnect: [RolePeopleHasRoleDisconnectFieldInput!]
+  update: RolePeopleHasRoleUpdateConnectionInput
+  where: RolePeopleHasRoleConnectionWhere
+}
+
+type RolePersonPeopleHasRoleAggregationSelection {
+  count: Int!
+  node: RolePersonPeopleHasRoleNodeAggregateSelection
+}
+
+type RolePersonPeopleHasRoleNodeAggregateSelection {
+  firstname: StringAggregateSelection!
+  lastname: StringAggregateSelection!
+}
+
+input RoleRelationInput {
+  peopleHasRole: [RolePeopleHasRoleCreateFieldInput!]
+}
+
+"""
+Fields to sort Roles by. The order in which sorts are applied is not guaranteed when specifying many fields in one RoleSort object.
+"""
+input RoleSort {
+  title: SortDirection
+}
+
+input RoleUpdateInput {
+  peopleHasRole: [RolePeopleHasRoleUpdateFieldInput!]
+  title: String
+}
+
+input RoleWhere {
+  AND: [RoleWhere!]
+  NOT: RoleWhere
+  OR: [RoleWhere!]
+  peopleHasRoleAggregate: RolePeopleHasRoleAggregateInput
+
+  """
+  Return Roles where all of the related RolePeopleHasRoleConnections match this filter
+  """
+  peopleHasRoleConnection_ALL: RolePeopleHasRoleConnectionWhere
+
+  """
+  Return Roles where none of the related RolePeopleHasRoleConnections match this filter
+  """
+  peopleHasRoleConnection_NONE: RolePeopleHasRoleConnectionWhere
+
+  """
+  Return Roles where one of the related RolePeopleHasRoleConnections match this filter
+  """
+  peopleHasRoleConnection_SINGLE: RolePeopleHasRoleConnectionWhere
+
+  """
+  Return Roles where some of the related RolePeopleHasRoleConnections match this filter
+  """
+  peopleHasRoleConnection_SOME: RolePeopleHasRoleConnectionWhere
+
+  """Return Roles where all of the related People match this filter"""
+  peopleHasRole_ALL: PersonWhere
+
+  """Return Roles where none of the related People match this filter"""
+  peopleHasRole_NONE: PersonWhere
+
+  """Return Roles where one of the related People match this filter"""
+  peopleHasRole_SINGLE: PersonWhere
+
+  """Return Roles where some of the related People match this filter"""
+  peopleHasRole_SOME: PersonWhere
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String!]
+  title_STARTS_WITH: String
+}
+
+type RolesConnection {
+  edges: [RoleEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type UpdateAgencesMutationResponse {
+  agences: [Agence!]!
+  info: UpdateInfo!
+}
+
+type UpdateClientsMutationResponse {
+  clients: [Client!]!
+  info: UpdateInfo!
+}
+
+type UpdateCompaniesMutationResponse {
+  companies: [Company!]!
+  info: UpdateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMissionDetailsMutationResponse {
+  info: UpdateInfo!
+  missionDetails: [MissionDetails!]!
+}
+
+type UpdateMissionsMutationResponse {
+  info: UpdateInfo!
+  missions: [Mission!]!
+}
+
+type UpdatePeopleMutationResponse {
+  info: UpdateInfo!
+  people: [Person!]!
+}
+
+type UpdateRolesMutationResponse {
+  info: UpdateInfo!
+  roles: [Role!]!
+}
+
+"""
+The edge properties for the following fields:
+* Company.peopleWorksFor
+* Person.worksForCompanies
+"""
+type WorksForProperties {
+  hiringdate: Date!
+}
+
+input WorksForPropertiesCreateInput {
+  hiringdate: Date!
+}
+
+input WorksForPropertiesSort {
+  hiringdate: SortDirection
+}
+
+input WorksForPropertiesUpdateInput {
+  hiringdate: Date
+}
+
+input WorksForPropertiesWhere {
+  AND: [WorksForPropertiesWhere!]
+  NOT: WorksForPropertiesWhere
+  OR: [WorksForPropertiesWhere!]
+  hiringdate: Date
+  hiringdate_GT: Date
+  hiringdate_GTE: Date
+  hiringdate_IN: [Date!]
+  hiringdate_LT: Date
+  hiringdate_LTE: Date
+}
