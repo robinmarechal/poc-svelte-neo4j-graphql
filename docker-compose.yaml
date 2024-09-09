@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  apollo-proxy:
+    build: 
+      context: ./apollo-server
+    image: rmarechal/svelte-neo4j-graphql-apollo-server
+    ports:
+      - "4000:4000"

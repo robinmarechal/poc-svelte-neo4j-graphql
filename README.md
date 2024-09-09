@@ -1,38 +1,23 @@
-# create-svelte
+# Svelte Neo4J GraphQL POC
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+Sveltekit frontend with a Neo4J database using an Apollo Server proxy to translate GraphQL queries to Cypher
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm install
+pnpm dev
 ```
 
-## Building
+## Start Apollo GraphQL Proxy
 
-To create a production version of your app:
+1. Rename `apollo-server/.env.example` to `apollo-server/.env`
+2. Fill env variables in file `apollo-server/.env`
+3. Start apollo server
 
 ```bash
-npm run build
+docker compose up
 ```
 
-You can preview the production build with `npm run preview`.
+> Note: To run Apollo proxy without docker compose, see [apollo-server/README.md](apollo-server/README.md)
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
