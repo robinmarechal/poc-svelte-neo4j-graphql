@@ -1,7 +1,6 @@
 import neo4j from "neo4j-driver";
 import fs from "node:fs";
 import csv from "csv-parser";
-import { rejects } from "node:assert";
 
 /**
  * Neo4J node types
@@ -41,8 +40,6 @@ import { rejects } from "node:assert";
  *  @property {number} id
  *  @property {string} name
  *  @property {SportRecord} sport
- *  @property {GamesRecord} games
- *  @property {CityRecord} city
  *
  * @typedef NocRecord
  *  @property {number} id
@@ -51,12 +48,23 @@ import { rejects } from "node:assert";
  * @typedef ParticipationRecord
  *  @property {number} id
  *  @property {NocRecord} noc
+ *  @property {AthleteRecord} athlete
  *  @property {GamesRecord} games
- *  @property {EventRecord} event
  *  @property {Number | undefined} age
  *  @property {Number | undefined} height
  *  @property {Number | undefined} weight
+ * 
+ * @typedef GameEventRecord
+ *  @property {number} id
+ *  @property {EventRecord} event
+ *  @property {GamesRecord} games
+ *  @property {CityRecord} city
+ *  @property {ParticipationRecord} participation
  *
+ * @typedef ParticipationMedalRecord
+ *  @property {string} medal
+ *  @property {ParticipationRecord} participation
+ *  @property {GameEventRecord} gameEvent
  */
 
 /**
@@ -147,7 +155,8 @@ async function parseCsvFile(filename) {
         })
       )
       .on("data", (d) => {
-        if (d.id) {
+        // if (d.id && d.year >= 2008) {
+        if (d.id && d.year >= 2008) {
           data.push(sanitizeRow(d));
         }
       })
@@ -160,7 +169,7 @@ async function parseCsvFile(filename) {
   });
 }
 
-const rows = await parseCsvFile("./athlete_events.csv");
+const rows = await parseCsvFile(process.argv[2] ?? "./athlete_events.csv");
 
 // 1. country
 /** @type CountryRecord[] */
@@ -183,6 +192,18 @@ const events = [];
 
 /** @type Map<Number, AthleteRecord> */
 const athletes = new Map();
+
+/** @type NocRecord[] */
+const nocs = [];
+
+/** @type Map<string, GameEventRecord> */
+const gameEvents = new Map();
+
+/** @type Map<string, ParticipationRecord> */
+const participations = new Map();
+
+/** @type ParticipationMedalRecord[] */
+const participationMedals = [];
 
 /**
  * @param {CsvRow} row
@@ -228,7 +249,6 @@ function createGames(row) {
  */
 function createGamesCities(games, city) {
   return {
-    id: gamesCities.length + 1,
     games,
     city,
   };
@@ -250,13 +270,11 @@ function createSport(row) {
  * @param {SportRecord} sport
  * @returns {EventRecord}
  */
-function createEvent(row, sport, city, games) {
+function createEvent(row, sport) {
   return {
     id: events.length + 1,
     name: row.event,
-    sport,
-    city,
-    games
+    sport
   };
 }
 
@@ -272,6 +290,71 @@ function createAthlete(row) {
     sex: row.sex,
     birthYear: "0",
   };
+}
+
+/**
+ *
+ * @param {CsvRow} row
+ * @returns {NocRecord}
+ */
+function createNoc(row) {
+  return {
+    id: nocs.length + 1,
+    noc: row.noc
+  };
+}
+
+/**
+ * 
+ * @param {GamesRecord} games 
+ * @param {EventRecord} event 
+ * @param {CityRecord} city 
+ * @param {ParticipationRecord} participation 
+ * @returns {GameEventRecord}
+ */
+function createGameEvent(event, games, city, participation) {
+  return {
+    id: gameEvents.size + 1,
+    games,
+    event,
+    city,
+    participation
+  }
+}
+
+/**
+ * 
+ * @param {CsvRow} row 
+ * @param {AthleteRecord} athlete 
+ * @param {NocRecord} noc 
+ * @param {GamesRecord} gameEvent
+ * @returns {ParticipationRecord}
+ */
+function createParticipation(row, athlete, noc, games) {
+  return {
+    id: participations.size + 1,
+    athlete,
+    games,
+    noc,
+    age: row.age == 'NA' ? null : row.age,
+    height: row.height == 'NA' ? null : row.height,
+    weight: row.weight == 'NA' ? null : row.weight,
+  }
+}
+
+/**
+ * 
+ * @param {CsvRow} row 
+ * @param {ParticipationRecord} participation 
+ * @param {GameEventRecord} gameEvent 
+ * @returns {ParticipationMedalRecord}
+ */
+function createMedal(row, participation, gameEvent) {
+  return {
+    medal: row.medal,
+    participation,
+    gameEvent
+  }
 }
 
 /**
@@ -335,10 +418,10 @@ function findOrAddSports(row) {
   return sport;
 }
 
-function findOrAddEvent(row, sport, city, games) {
-  let event = events.find((e) => e.name === row.event && e.sport === sport && e.city === city && e.games === games);
+function findOrAddEvent(row, sport) {
+  let event = events.find((e) => e.name === row.event && e.sport === sport);
   if (!event) {
-    event = createEvent(row, sport, city, games);
+    event = createEvent(row, sport);
     events.push(event);
   }
   return event;
@@ -353,6 +436,42 @@ function findOrAddAthlete(row) {
   return athlete;
 }
 
+function findOrAddNoc(row) {
+  let noc = nocs.find(n => n.noc === row.noc)
+  if (!noc) {
+    noc = createNoc(row)
+    nocs.push(noc)
+  }
+  return noc;
+}
+
+function findOrAddGameEvent(event, games, city, participation) {
+  const key = `${event.id}-${games.id}-${city.id}-${participation.id}`
+  let gameEvent = gameEvents.get(key)
+  if (!gameEvent) {
+    gameEvent = createGameEvent(event, games, city, participation)
+    gameEvents.set(key, gameEvent)
+  }
+  return gameEvent
+}
+
+function storeParticipation(row, athlete, noc, games) {
+  const key = `${athlete.id}-${noc.id}-${games.id}`
+  let participation = participations.get(key)
+  if (!participation) {
+    participation = createParticipation(row, athlete, noc, games);
+    participations.set(key, participation)
+  }
+  return participation
+}
+
+function storeMedal(row, participation, gameEvent) {
+  if (row.medal && row.medal != 'NA') {
+    const participationMedal = createMedal(row, participation, gameEvent)
+    participationMedals.push(participationMedal)
+  }
+}
+
 for (let i = 0; i < rows.length; i++) {
   const row = rows[i];
 
@@ -362,9 +481,14 @@ for (let i = 0; i < rows.length; i++) {
   const gamesCity = findOrAddGamesCities(games, city);
 
   const sport = findOrAddSports(row);
-  const event = findOrAddEvent(row, sport, games, city);
+  const event = findOrAddEvent(row, sport);
 
   const athlete = findOrAddAthlete(row);
+
+  const noc = findOrAddNoc(row)
+  const participation = storeParticipation(row, athlete, noc, games)
+  const gameEvent = findOrAddGameEvent(event, games, city, participation)
+  const medal = storeMedal(row, participation, gameEvent)
 
   if (i % 1000 === 0) {
     console.log(`Processed row #${i}`);
@@ -398,54 +522,54 @@ function toCypherProperties(obj) {
   return "{" + parts.join(", ") + "}";
 }
 
-const cypherQueries = [];
+// const cypherQueries = [];
 
-cypherQueries.push("// Countries");
-for (let country of countries) {
-  cypherQueries.push(`MERGE (:Country ${toCypherProperties(country)});`);
-}
-console.log("Generated Country");
+// cypherQueries.push("// Countries");
+// for (let country of countries) {
+//   cypherQueries.push(`MERGE (:Country ${toCypherProperties(country)});`);
+// }
+// console.log("Generated Country");
 
-cypherQueries.push("");
-cypherQueries.push("// Cities and relationship LOCATED_IN with Countries");
-for (let city of cities) {
-  cypherQueries.push(`
-MATCH (country: Country {id: ${city.country.id}})
-MERGE (city: City ${toCypherProperties(city)})-[:LOCATED_IN]->(country);`);
-}
-console.log("Generated Country and LOCATED_IN");
+// cypherQueries.push("");
+// cypherQueries.push("// Cities and relationship LOCATED_IN with Countries");
+// for (let city of cities) {
+//   cypherQueries.push(`
+// MATCH (country: Country {id: ${city.country.id}})
+// MERGE (city: City ${toCypherProperties(city)})-[:LOCATED_IN]->(country);`);
+// }
+// console.log("Generated Country and LOCATED_IN");
 
-cypherQueries.push("");
-cypherQueries.push("// Games");
-for (let games of gamesList) {
-  cypherQueries.push(`MERGE (:Games ${toCypherProperties(games)});`);
-}
-console.log("Generated Games");
+// cypherQueries.push("");
+// cypherQueries.push("// Games");
+// for (let games of gamesList) {
+//   cypherQueries.push(`MERGE (:Games ${toCypherProperties(games)});`);
+// }
+// console.log("Generated Games");
 
-cypherQueries.push("");
-cypherQueries.push("// Relationships HOSTED_IN between games and cities ");
-for (let gamesCity of gamesCities) {
-  cypherQueries.push(`
-MATCH (city: City {id: ${gamesCity.city.id}})
-MATCH (games: Games {id: ${gamesCity.games.id}})
-MERGE (games)-[:HOSTED_IN]->(city);`);
-}
-console.log("Generated HOSTED_IN");
+// cypherQueries.push("");
+// cypherQueries.push("// Relationships HOSTED_IN between games and cities ");
+// for (let gamesCity of gamesCities) {
+//   cypherQueries.push(`
+// MATCH (city: City {id: ${gamesCity.city.id}})
+// MATCH (games: Games {id: ${gamesCity.games.id}})
+// MERGE (games)-[:HOSTED_IN]->(city);`);
+// }
+// console.log("Generated HOSTED_IN");
 
-cypherQueries.push("// Sports");
-for (let sport of sports) {
-  cypherQueries.push(`MERGE (:Sport ${toCypherProperties(sport)});`);
-}
-console.log("Generated Sport");
+// cypherQueries.push("// Sports");
+// for (let sport of sports) {
+//   cypherQueries.push(`MERGE (:Sport ${toCypherProperties(sport)});`);
+// }
+// console.log("Generated Sport");
 
-cypherQueries.push("");
-cypherQueries.push("// Events and relationship EVENT_OF with Sports");
-for (let event of events) {
-  cypherQueries.push(`
-MATCH (sport: Sport {id: ${event.sport.id}})
-MERGE (event: Event ${toCypherProperties(event)})-[:EVENT_OF]->(event);`);
-}
-console.log("Generated Event and EVENT_OF");
+// cypherQueries.push("");
+// cypherQueries.push("// Events and relationship EVENT_OF with Sports");
+// for (let event of events) {
+//   cypherQueries.push(`
+// MATCH (sport: Sport {id: ${event.sport.id}})
+// MERGE (event: Event ${toCypherProperties(event)})-[:EVENT_OF]->(event);`);
+// }
+// console.log("Generated Event and EVENT_OF");
 
 // cypherQueries.push("// Athletes");
 // for (let athlete of athletes.values()) {
@@ -473,7 +597,6 @@ console.log("Generated Event and EVENT_OF");
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import "dotenv/config";
-import ts from "typescript";
 
 const driver = neo4j.driver(
   process.env.NEO4J_URL,
@@ -512,105 +635,182 @@ function asQueryParam(obj) {
   return target;
 }
 
-await session.executeWrite(async (tx) => {
-  tx.run("MATCH (n:Country) DETACH DELETE n;");
-  tx.run("MATCH (n:City) DETACH DELETE n;");
-  tx.run("MATCH (n:Games) DETACH DELETE n;");
-  tx.run("MATCH (n:Sport) DETACH DELETE n;");
-  tx.run("MATCH (n:Event) DETACH DELETE n;");
-  tx.run("MATCH (n:Team) DETACH DELETE n;");
-  tx.run("MATCH (n:Athlete) DETACH DELETE n;");
-  tx.run("MATCH (n:NationalOlympicCommittee) DETACH DELETE n;");
-  tx.run("MATCH (n:GameEvent) DETACH DELETE n;");
+// await session.executeWrite(async (tx) => {
+await driver.executeQuery("CREATE INDEX country_idx_id IF NOT EXISTS FOR (n:Country) ON (n.id)")
+await driver.executeQuery("CREATE INDEX city_idx_id IF NOT EXISTS FOR (n:City) ON (n.id)")
+await driver.executeQuery("CREATE INDEX games_idx_id IF NOT EXISTS FOR (n:Games) ON (n.id)")
+await driver.executeQuery("CREATE INDEX sport_idx_id IF NOT EXISTS FOR (n:Sport) ON (n.id)")
+await driver.executeQuery("CREATE INDEX event_idx_id IF NOT EXISTS FOR (n:Event) ON (n.id)")
+await driver.executeQuery("CREATE INDEX team_idx_id IF NOT EXISTS FOR (n:Team) ON (n.id)")
+await driver.executeQuery("CREATE INDEX athlete_idx_id IF NOT EXISTS FOR (n:Athlete) ON (n.id)")
+await driver.executeQuery("CREATE INDEX nationalolympiccommittee_idx_id IF NOT EXISTS FOR (n:NationalOlympicCommittee) ON (n.id)")
+await driver.executeQuery("CREATE INDEX gameevent_idx_id IF NOT EXISTS FOR (n:GameEvent) ON (n.id)")
+await driver.executeQuery("CREATE INDEX participation_idx_id IF NOT EXISTS FOR (n:Participation) ON (n.id)")
+console.log("Created indexes if not exist")
+// })
 
-  //   for (let query of cypherQueries) {
-  //     if (!query || query === "" || query.trim().startsWith("//")) {
-  //       continue;
-  //     }
+// await session.executeWrite(async (tx) => {
+await driver.executeQuery("MATCH (n:Country) DETACH DELETE n;");
+await driver.executeQuery("MATCH (n:City) DETACH DELETE n;");
+await driver.executeQuery("MATCH (n:Games) DETACH DELETE n;");
+await driver.executeQuery("MATCH (n:Sport) DETACH DELETE n;");
+await driver.executeQuery("MATCH (n:Event) DETACH DELETE n;");
+await driver.executeQuery("MATCH (n:Team) DETACH DELETE n;");
+await driver.executeQuery("MATCH (n:Athlete) DETACH DELETE n;");
+await driver.executeQuery("MATCH (n:NationalOlympicCommittee) DETACH DELETE n;");
+await driver.executeQuery("MATCH (n:GameEvent) DETACH DELETE n;");
+await driver.executeQuery("MATCH (n:Participation) DETACH DELETE n;");
+console.log("Deleted existing nodes")
 
-  //     console.time("duration");
-  //     await tx.run(query);
-  //     console.log("Executed query", query);
-  //     console.timeEnd("duration");
-  //   }
+//   for (let query of cypherQueries) {
+//     if (!query || query === "" || query.trim().startsWith("//")) {
+//       continue;
+//     }
 
-  tx.run(
-    `
+//     console.time("duration");
+//     await driver.executeQuery(query);
+//     console.log("Executed query", query);
+//     console.timeEnd("duration");
+//   }
+
+await driver.executeQuery(
+  `
   UNWIND $countries as props
   CREATE (n:Country) SET n = props.values
   `,
-    { countries: asQueryParam(countries) }
-  );
+  { countries: asQueryParam(countries) }
+);
+console.log("Created nodes Country")
 
-  tx.run(
-    `
+await driver.executeQuery(
+  `
   UNWIND $cities as props
   MATCH (country: Country {id: props.relations.country.id})
   CREATE (n:City)-[:LOCATED_IN]->(country) SET n = props.values
   `,
-    { cities: asQueryParam(cities) }
-  );
+  { cities: asQueryParam(cities) }
+);
+console.log("Created nodes City and relationship LOCATED_IN Country")
 
-  tx.run(
-    `
+await driver.executeQuery(
+  `
   UNWIND $games as props
   CREATE (n:Games) SET n = props.values
   `,
-    { games: asQueryParam(gamesList) }
-  );
+  { games: asQueryParam(gamesList) }
+);
+console.log("Created nodes Games")
 
-  tx.run(
-    `
+await driver.executeQuery(
+  `
   UNWIND $gamesCities as props
   MATCH (games: Games {id: props.relations.games.id})
   MATCH (city: City {id: props.relations.city.id})
   CREATE (games)-[:HOSTED_IN]->(city)
   `,
-    { gamesCities: asQueryParam(gamesCities) }
-  );
+  { gamesCities: asQueryParam(gamesCities) }
+);
+console.log("Created relationships Games HOSTED_IN City")
 
 
-
-  tx.run(
-    `
+await driver.executeQuery(
+  `
   UNWIND $sports as props
   CREATE (n: Sport) SET n = props.values
   `,
-    { sports: asQueryParam(sports) }
-  );
+  { sports: asQueryParam(sports) }
+);
+console.log("Created nodes Sport")
 
-  tx.run(
-    `
+await driver.executeQuery(
+  `
 UNWIND $events as props
 MATCH (sport: Sport {id: props.relations.sport.id})
 CREATE (event: Event)-[:OF_SPORT]->(sport) SET event = props.values
 `,
-    { events: asQueryParam(events) }
+  { events: asQueryParam(events) }
+);
+console.log("Created nodes Event and relationships OF_SPORT sport")
+
+await driver.executeQuery(`
+    UNWIND $nocs as props
+    CREATE (n:NationalOlympicCommittee) SET n = props.values
+    `, { nocs: asQueryParam(nocs) }
+)
+console.log("Created nodes NationalOlympicCommittee")
+
+
+const athletesList = [...Array.from(athletes.values())]
+while (athletesList.length) {
+  const removed = athletesList.splice(0, 10000)
+  await driver.executeQuery(
+    `
+        UNWIND $athletes as props
+        CREATE (n: Athlete) SET n = props.values
+        RETURN n
+    `,
+    { athletes: asQueryParam(removed) }
+  );
+  console.log("Created " + removed.length + " nodes. " + athletesList.length + " remaining")
+}
+console.log("Created nodes Athlete")
+
+const tmpParticipations = [...Array.from(participations.values())]
+while (tmpParticipations.length) {
+  const removed = tmpParticipations.splice(0, 10000)
+
+  await driver.executeQuery(
+    `
+  UNWIND $participations as props
+  MATCH (athlete: Athlete {id: props.relations.athlete.id})
+  MATCH (noc: NationalOlympicCommittee {id: props.relations.noc.id})
+  MATCH (games: Games {id: props.relations.games.id})
+  CREATE (p: Participation) SET p = props.values
+  CREATE (p)-[:UNDER_NOC]->(noc)
+  CREATE (athlete)-[:HAS_PARTICIPATION]->(p)-[:DURING_GAMES]->(games)
+  `,
+    { participations: asQueryParam(removed) }
   );
 
-  tx.run(
+  console.log("Created " + removed.length + " nodes Participation... " + tmpParticipations.length + " remaining")
+}
+
+
+console.log("Created nodes Participation and UNDER_NOC, OF_EVENT, PARTICIPATED_IN, IN_EVENT, AT_GAMES and IN_CITY")
+// console.log(participations)
+// console.log(asQueryParam(participations))
+
+
+const gameEventList = [...Array.from(gameEvents.values())]
+while (gameEventList.length) {
+  const removed = gameEventList.splice(0, 10000)
+  await driver.executeQuery(
     `
-UNWIND $events as props
-MATCH (event: Event {id: props.values.id})
+UNWIND $gameEvents as props
+MATCH (event: Event {id: props.relations.event.id})
 MATCH (city: City {id: props.relations.city.id})
 MATCH (games: Games {id: props.relations.games.id})
-CREATE (ge: GameEvent)
-CREATE (ge)-[:OF_EVENT]->(event)
-CREATE (ge)-[:HOSTED_IN_CITY]->(city)
-CREATE (ge)-[:HOSTED_DURING_GAMES]->(games)
+MATCH (participation: Participation {id: props.relations.participation.id})
+CREATE (ge: GameEvent) SET ge = props.values
+CREATE (participation)-[:PARTICIPATION]->(ge)-[:OF_EVENT]->(event)
+CREATE (city)-[:HOSTED_EVENT]->(ge)-[:HOSTED_DURING_GAMES]->(games)
 `,
-    { events: asQueryParam(events) }
+    { gameEvents: asQueryParam(removed) }
   );
+  console.log("Created " + removed.length + " nodes. " + gameEventList.length + " remaining")
+}
+console.log("Created nodes GameEvent and relationship OF_EVENT, HOSTED_IN_CITY and HOSTED_DURING_GAMES")
 
-  // tx.run(
-  //   `
-  //       UNWIND $athletes as props
-  //       CREATE (n: Athlete) SET n = props.values
-  //       RETURN n
-  //   `,
-  //   { athletes: asQueryParam(Array.from(athletes.values())) }
-  // );
-});
+
+await driver.executeQuery(`
+  UNWIND $medals as props
+  MATCH (participation: Participation {id: props.relations.participation.id})
+  MATCH (gameEvent: GameEvent {id: props.relations.gameEvent.id})
+  CREATE (participation)-[r:MEDAL]->(gameEvent) SET r = props.values
+  `, { medals: asQueryParam(participationMedals) })
+console.log("Created relationships Participation MEDAL GameEvent")
+
+// });
 
 await session.close();
 await driver.close();
