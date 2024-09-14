@@ -156,7 +156,7 @@ async function parseCsvFile(filename) {
       )
       .on("data", (d) => {
         // if (d.id && d.year >= 2008) {
-        if (d.id && d.year >= 2008) {
+        if (d.id) {
           data.push(sanitizeRow(d));
         }
       })
