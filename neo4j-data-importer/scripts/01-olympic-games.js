@@ -1,6 +1,7 @@
 import neo4j from "neo4j-driver";
 import fs from "node:fs";
 import csv from "csv-parser";
+import "dotenv/config";
 
 /**
  * Neo4J node types
@@ -596,24 +597,12 @@ function toCypherProperties(obj) {
 //////////////////////////// NEO4J
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-import "dotenv/config";
-
 const driver = neo4j.driver(
   process.env.NEO4J_URL,
   neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD)
 );
 
-const session = driver.session();
-
-function removeNonPrimiviteProps(obj) {
-  if (obj.length) {
-    return obj.map(removeNonPrimiviteProps);
-  }
-
-  return Object.fromEntries(
-    Object.entries(obj).filter(([k, v]) => typeof v !== "object")
-  );
-}
+// const session = driver.session();
 
 function asQueryParam(obj) {
   if (obj.length) {
@@ -812,5 +801,5 @@ console.log("Created relationships Participation MEDAL GameEvent")
 
 // });
 
-await session.close();
+// await session.close();
 await driver.close();
