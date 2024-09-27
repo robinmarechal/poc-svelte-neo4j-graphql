@@ -786,7 +786,7 @@ CREATE (city)-[:HOSTED_EVENT]->(ge)-[:HOSTED_DURING_GAMES]->(games)
 `,
     { gameEvents: asQueryParam(removed) }
   );
-  console.log("Created " + removed.length + " nodes. " + gameEventList.length + " remaining")
+  console.log("Created " + removed.length + " nodes GameEvent. " + gameEventList.length + " remaining")
 }
 console.log("Created nodes GameEvent and relationship OF_EVENT, HOSTED_IN_CITY and HOSTED_DURING_GAMES")
 

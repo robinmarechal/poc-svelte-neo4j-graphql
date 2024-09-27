@@ -328,3 +328,28 @@ driver.close();
 // RETURN viewedVideo, suggestedVideo, path, allPaths
 // ORDER BY nbPaths DESC, combinedCompletion DESC
 // LIMIT 3
+
+
+// MATCH path = (n: User {id: 1})-[v1:VIEWED]->(viewedVideo:Video)<-[v2:VIEWED]-(u:User)-[v3:VIEWED]->(suggestedVideo:Video)
+// WHERE NOT EXISTS((n)-[:VIEWED]->(suggestedVideo))
+//      AND n <> u
+//      AND viewedVideo <> suggestedVideo
+// OPTIONAL MATCH paths = (n)-[:VIEWED|LIKED]->()<-[:VIEWED|LIKED]-(u)-[:VIEWED|LIKED]->(suggestedVideo)
+// WITH viewedVideo, suggestedVideo, collect(paths) as allPaths
+// WITH *, size(allPaths) as nbPaths
+// RETURN viewedVideo, suggestedVideo, suggestedVideo.title as title, allPaths, nbPaths
+// ORDER BY nbPaths DESC
+// LIMIT 3
+
+
+// MATCH path = (n: User {id: 1})-[v1:VIEWED]->(viewedVideo:Video)<-[v2:VIEWED]-(u:User)-[v3:VIEWED]->(suggestedVideo:Video)
+// WHERE NOT EXISTS((n)-[:VIEWED]->(suggestedVideo))
+//      AND n <> u
+//      AND viewedVideo <> suggestedVideo
+// OPTIONAL MATCH paths = (n)-[:VIEWED|LIKED]->()<-[:VIEWED|LIKED]-(u)-[:VIEWED|LIKED]->(suggestedVideo)
+// WITH n, viewedVideo, suggestedVideo, collect(paths) as allPaths
+// WITH *, size(allPaths) as nbPaths
+// CALL apoc.create.vRelationship(n, 'SUGGESTION', {score: nbPaths}, suggestedVideo) YIELD rel
+// RETURN suggestedVideo, rel, n, nbPaths as score
+// ORDER BY nbPaths DESC
+// LIMIT 3
