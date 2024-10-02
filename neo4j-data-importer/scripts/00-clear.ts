@@ -100,6 +100,8 @@ while (true) {
 
 console.log(`Done`)
 console.timeEnd("Nodes")
+
+await driver.executeQuery('CALL apoc.schema.assert({}, {}, true)');
 console.timeEnd("Total duration")
 
 driver.close();

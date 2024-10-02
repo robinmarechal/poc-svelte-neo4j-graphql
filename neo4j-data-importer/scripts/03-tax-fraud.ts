@@ -4,59 +4,59 @@ import neo4j from "neo4j-driver";
 
 
 const entities = [
-    { id: 1, nom: "Entreprise A (Maison Mère)", label: "Entreprise" },
-    { id: 2, nom: "Holding X", label: "Holding" },
-    { id: 3, nom: "Holding Y", label: "Holding" },
-    { id: 4, nom: "Filiale B", label: "Entreprise" },
-    { id: 5, nom: "Filiale C", label: "Entreprise" },
-    { id: 6, nom: "Filiale D", label: "Entreprise" },
-    { id: 7, nom: "Filiale E", label: "Entreprise" },
-    { id: 8, nom: "Filiale F", label: "Entreprise" },
-    { id: 9, nom: "Filiale G", label: "Entreprise" },
-    { id: 10, nom: "Investisseur 1", label: "Investisseur" },
-    { id: 11, nom: "Investisseur 2", label: "Investisseur" },
-    { id: 12, nom: "Investisseur 3", label: "Investisseur" },
-    { id: 13, nom: "Investisseur 4", label: "Investisseur" },
-    { id: 14, nom: "Investisseur 5", label: "Investisseur" },
-    { id: 15, nom: "Filiale H", label: "Entreprise" },
-    { id: 16, nom: "Filiale I", label: "Entreprise" },
-    { id: 17, nom: "Filiale J", label: "Entreprise" },
-    { id: 18, nom: "Filiale K", label: "Entreprise" },
-    { id: 19, nom: "Filiale L", label: "Entreprise" },
-    { id: 20, nom: "Filiale M", label: "Entreprise" },
-    { id: 21, nom: "Investisseur 6", label: "Investisseur" },
-    { id: 22, nom: "Investisseur 7", label: "Investisseur" },
-    { id: 23, nom: "Investisseur 8", label: "Investisseur" },
-    { id: 24, nom: "Investisseur 9", label: "Investisseur" },
-    { id: 25, nom: "Investisseur 10", label: "Investisseur" },
-    { id: 26, nom: "Filiale N", label: "Entreprise" },
-    { id: 27, nom: "Filiale O", label: "Entreprise" },
-    { id: 28, nom: "Investisseur 11", label: "Investisseur" },
-    { id: 29, nom: "Investisseur 12", label: "Investisseur" },
-    { id: 30, nom: "Filiale P", label: "Entreprise" },
-    { id: 31, nom: "Filiale Q", label: "Entreprise" },
-    { id: 32, nom: "Filiale R", label: "Entreprise" },
-    { id: 33, nom: "Filiale S", label: "Entreprise" },
-    { id: 34, nom: "Filiale T", label: "Entreprise" },
-    { id: 35, nom: "Investisseur 13", label: "Investisseur" },
-    { id: 36, nom: "Investisseur 14", label: "Investisseur" },
+    { id: 1, nom: faker.company.name(), label: "Entreprise" },
+    { id: 2, nom: faker.company.name(), label: "Holding" },
+    { id: 3, nom: faker.company.name(), label: "Holding" },
+    { id: 4, nom: faker.company.name(), label: "Entreprise" },
+    { id: 5, nom: faker.company.name(), label: "Entreprise" },
+    { id: 6, nom: faker.company.name(), label: "Entreprise" },
+    { id: 7, nom: faker.company.name(), label: "Entreprise" },
+    { id: 8, nom: faker.company.name(), label: "Entreprise" },
+    { id: 9, nom: faker.company.name(), label: "Entreprise" },
+    { id: 10, nom: faker.company.name(), label: "Investisseur" },
+    { id: 11, nom: faker.company.name(), label: "Investisseur" },
+    { id: 12, nom: faker.company.name(), label: "Investisseur" },
+    { id: 13, nom: faker.company.name(), label: "Investisseur" },
+    { id: 14, nom: faker.company.name(), label: "Investisseur" },
+    { id: 15, nom: faker.company.name(), label: "Entreprise" },
+    { id: 16, nom: faker.company.name(), label: "Entreprise" },
+    { id: 17, nom: faker.company.name(), label: "Entreprise" },
+    { id: 18, nom: faker.company.name(), label: "Entreprise" },
+    { id: 19, nom: faker.company.name(), label: "Entreprise" },
+    { id: 20, nom: faker.company.name(), label: "Entreprise" },
+    { id: 21, nom: faker.company.name(), label: "Investisseur" },
+    { id: 22, nom: faker.company.name(), label: "Investisseur" },
+    { id: 23, nom: faker.company.name(), label: "Investisseur" },
+    { id: 24, nom: faker.company.name(), label: "Investisseur" },
+    { id: 25, nom: faker.company.name(), label: "Investisseur" },
+    { id: 26, nom: faker.company.name(), label: "Entreprise" },
+    { id: 27, nom: faker.company.name(), label: "Entreprise" },
+    { id: 28, nom: faker.company.name(), label: "Investisseur" },
+    { id: 29, nom: faker.company.name(), label: "Investisseur" },
+    { id: 30, nom: faker.company.name(), label: "Entreprise" },
+    { id: 31, nom: faker.company.name(), label: "Entreprise" },
+    { id: 32, nom: faker.company.name(), label: "Entreprise" },
+    { id: 33, nom: faker.company.name(), label: "Entreprise" },
+    { id: 34, nom: faker.company.name(), label: "Entreprise" },
+    { id: 35, nom: faker.company.name(), label: "Investisseur" },
+    { id: 36, nom: faker.company.name(), label: "Investisseur" },
 
     // Nouvelles entités ajoutées
-    { id: 37, nom: "Filiale U", label: "Entreprise" },
-    { id: 38, nom: "Filiale V", label: "Entreprise" },
-    { id: 39, nom: "Filiale W", label: "Entreprise" },
-    { id: 40, nom: "Investisseur 15", label: "Investisseur" },
-    { id: 41, nom: "Investisseur 16", label: "Investisseur" },
-    { id: 42, nom: "Filiale X", label: "Entreprise" },
-    { id: 43, nom: "Filiale Y", label: "Entreprise" },
-    { id: 44, nom: "Filiale Z", label: "Entreprise" },
-    { id: 45, nom: "Investisseur 17", label: "Investisseur" },
-    { id: 46, nom: "Investisseur 18", label: "Investisseur" },
-    { id: 47, nom: "Filiale AA", label: "Entreprise" },
-    { id: 48, nom: "Filiale AB", label: "Entreprise" },
-    { id: 49, nom: "Filiale AC", label: "Entreprise" },
-    { id: 50, nom: "Investisseur 19", label: "Investisseur" },
-    { id: 51, nom: "Investisseur 20", label: "Investisseur" },
+    { id: 37, nom: faker.company.name(), label: "Entreprise" },
+    { id: 38, nom: faker.company.name(), label: "Entreprise" },
+    { id: 39, nom: faker.company.name(), label: "Entreprise" },
+    { id: 40, nom: faker.company.name(), label: "Investisseur" },
+    { id: 41, nom: faker.company.name(), label: "Investisseur" },
+    { id: 42, nom: faker.company.name(), label: "Entreprise" },
+    { id: 43, nom: faker.company.name(), label: "Entreprise" },
+    { id: 44, nom: faker.company.name(), label: "Entreprise" },
+    { id: 45, nom: faker.company.name(), label: "Investisseur" },
+    { id: 46, nom: faker.company.name(), label: "Investisseur" },
+    { id: 47, nom: faker.company.name(), label: "Entreprise" },
+    { id: 48, nom: faker.company.name(), label: "Entreprise" },
+    { id: 49, nom: faker.company.name(), label: "Entreprise" },
+    { id: 50, nom: faker.company.name(), label: "Investisseur" },
+    { id: 51, nom: faker.company.name(), label: "Investisseur" },
 ];
 
 const links = [
@@ -133,13 +133,13 @@ driver.close()
 
 
 // MATCH p=(e: Entity)-[:DETIENT*1..10]->(e) 
-// WITH *, reduce(actions = 1, r in relationships(p) | actions * r.actions ) as shares 
-// WHERE shares > 0.1 
-// RETURN p, e.nom as Nom, shares
+// WITH *, reduce(actions = 1, r in relationships(p) | actions * r.actions ) as totalShares 
+// WHERE totalShares > 0.1 
+// RETURN p, e.nom as Nom, apoc.number.format(totalShares*100, ".2", "fr")+"%" as shares
 
 
 // MATCH p=(e: Entity)-[:DETIENT*1..10]->(e) 
-// WITH *, reduce(actions = 1, r in relationships(p) | actions * r.actions ) as shares 
-// WHERE shares > 0.1 
-// WITH *, apoc.number.format(shares*100, ".2", "fr") + "%" as totalSharesStr
-// RETURN p, shares, e.nom + " s'auto détient à hauteur de "+totalSharesStr+". La limite légale en France est de 10%." as text
+// WITH *, reduce(actions = 1, r in relationships(p) | actions * r.actions ) as totalShares 
+// WHERE totalShares > 0.1 
+// WITH *, apoc.number.format(totalShares*100, ".2", "fr") + "%" as totalSharesStr
+// RETURN p, totalShares, e.nom + " s'auto détient à hauteur de "+totalSharesStr+". La limite légale en France est de 10%." as text

@@ -1,48 +1,146 @@
-type Agence {
-    city: String!
-    peopleMainAgency: [Person!]! @relationship(type: "MAIN_AGENCY", direction: IN)
+type User {
+  followsUsers: [User!]! @relationship(type: "FOLLOWS", direction: OUT)
+  id: Float!
+  username: String!
+  usersFollows: [User!]! @relationship(type: "FOLLOWS", direction: IN)
 }
 
-type Client {
-    missionsClient: [Mission!]! @relationship(type: "CLIENT", direction: IN)
-    name: String!
+type Athlete {
+  birthYear: String!
+  hasParticipationParticipations: [Participation!]!
+    @relationship(type: "HAS_PARTICIPATION", direction: OUT)
+  id: String!
+  name: String!
+  sex: String!
 }
 
-type Company {
-    name: String!
-    peopleWorksFor: [Person!]! @relationship(type: "WORKS_FOR", direction: IN, properties: "WorksForProperties")
+type City {
+  gamesHostedIn: [Games!]! @relationship(type: "HOSTED_IN", direction: IN)
+  hostedEventGameEvents: [GameEvent!]!
+    @relationship(type: "HOSTED_EVENT", direction: OUT)
+  id: Float!
+  locatedInCountries: [Country!]!
+    @relationship(type: "LOCATED_IN", direction: OUT)
+  name: String!
 }
 
-type Mission {
-    clientClients: [Client!]! @relationship(type: "CLIENT", direction: OUT)
-    from: Date!
-    missionDetailsMissionDetails: [MissionDetails!]! @relationship(type: "MISSION_DETAILS", direction: OUT)
-    peopleMission: [Person!]! @relationship(type: "MISSION", direction: IN)
-    project: String!
-    to: Date
+type Country {
+  citiesLocatedIn: [City!]! @relationship(type: "LOCATED_IN", direction: IN)
+  id: Float!
+  name: String!
 }
 
-type MissionDetails {
-    key: String!
-    missionsMissionDetails: [Mission!]! @relationship(type: "MISSION_DETAILS", direction: IN)
-    value: String!
+type Event {
+  gameEventsOfEvent: [GameEvent!]!
+    @relationship(type: "OF_EVENT", direction: IN)
+  id: Float!
+  name: String!
+  ofSportSports: [Sport!]! @relationship(type: "OF_SPORT", direction: OUT)
 }
 
-type Person {
-    birthdate: Date!
-    firstname: String!
-    hasRoleRoles: [Role!]! @relationship(type: "HAS_ROLE", direction: OUT)
-    lastname: String!
-    mainAgencyAgences: [Agence!]! @relationship(type: "MAIN_AGENCY", direction: OUT)
-    missionMissions: [Mission!]! @relationship(type: "MISSION", direction: OUT)
-    worksForCompanies: [Company!]! @relationship(type: "WORKS_FOR", direction: OUT, properties: "WorksForProperties")
+type GameEvent {
+  citiesHostedEvent: [City!]! @relationship(type: "HOSTED_EVENT", direction: IN)
+  hostedDuringGamesGames: [Games!]!
+    @relationship(type: "HOSTED_DURING_GAMES", direction: OUT)
+  id: Float!
+  ofEventEvents: [Event!]! @relationship(type: "OF_EVENT", direction: OUT)
+  participationsMedal: [Participation!]!
+    @relationship(type: "MEDAL", direction: IN, properties: "MedalProperties")
+  participationsParticipation: [Participation!]!
+    @relationship(type: "PARTICIPATION", direction: IN)
 }
 
-type Role {
-    peopleHasRole: [Person!]! @relationship(type: "HAS_ROLE", direction: IN)
-    title: String!
+type Games {
+  gameEventsHostedDuringGames: [GameEvent!]!
+    @relationship(type: "HOSTED_DURING_GAMES", direction: IN)
+  hostedInCities: [City!]! @relationship(type: "HOSTED_IN", direction: OUT)
+  id: Float!
+  name: String!
+  participationsDuringGames: [Participation!]!
+    @relationship(type: "DURING_GAMES", direction: IN)
+  season: String!
+  year: String!
 }
 
-type WorksForProperties @relationshipProperties {
-    hiringdate: Date!
+type MedalProperties @relationshipProperties {
+  medal: String!
 }
+
+type NationalOlympicCommittee {
+  id: Float!
+  noc: String!
+  participationsUnderNoc: [Participation!]!
+    @relationship(type: "UNDER_NOC", direction: IN)
+}
+
+type Participation {
+  age: String
+  athletesHasParticipation: [Athlete!]!
+    @relationship(type: "HAS_PARTICIPATION", direction: IN)
+  duringGamesGames: [Games!]!
+    @relationship(type: "DURING_GAMES", direction: OUT)
+  height: String
+  id: Float!
+  medalGameEvents: [GameEvent!]!
+    @relationship(type: "MEDAL", direction: OUT, properties: "MedalProperties")
+  participationGameEvents: [GameEvent!]!
+    @relationship(type: "PARTICIPATION", direction: OUT)
+  underNocNationalOlympicCommittees: [NationalOlympicCommittee!]!
+    @relationship(type: "UNDER_NOC", direction: OUT)
+  weight: String
+}
+
+type Sport {
+  eventsOfSport: [Event!]! @relationship(type: "OF_SPORT", direction: IN)
+  id: Float!
+  name: String!
+}
+
+# query {
+#   games(where: { year: "2016" }) {
+#     name
+#     season
+#     year
+#     hostedInCities {
+#       name
+#       locatedInCountries {
+#         name
+#       }
+#     }
+#     gameEventsHostedDuringGames(
+#       where: {
+#         participationsMedalConnection_SOME: {
+#           node: { underNocNationalOlympicCommittees_SOME: { noc: "FRA" } }
+#         }
+#       }
+#     ) {
+#       ofEventEvents {
+#         name
+#         ofSportSports {
+#           name
+#         }
+#       }
+#       participationsMedalConnection(
+#         where: {
+#           node: { underNocNationalOlympicCommittees_SOME: { noc: "FRA" } }
+#         }
+#       ) {
+#         edges {
+#           properties {
+#             medal
+#           }
+#           node {
+#             age
+#             athletesHasParticipation {
+#               name
+#               sex
+#             }
+#             underNocNationalOlympicCommittees(where: { noc: "FRA" }) {
+#               noc
+#             }
+#           }
+#         }
+#       }
+#     }
+#   }
+# }

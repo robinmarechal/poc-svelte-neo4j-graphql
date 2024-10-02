@@ -89,7 +89,6 @@ const routes = [
   { from: "W4", to: "W46", distance: 47.64, duration: 63 },
   { from: "W46", to: "W31", distance: 100.46, duration: 130 },
   { from: "W31", to: "W13", distance: 27.35, duration: 40 },
-  { from: "W31", to: "W13", distance: 26.15, duration: 31 },
   { from: "W46", to: "W30", distance: 266.45, duration: 329 },
   { from: "W30", to: "W31", distance: 229.26, duration: 311 },
   { from: "W33", to: "W17", distance: 155.84, duration: 211 },
@@ -155,7 +154,7 @@ UNWIND $routes as props
 MATCH (from: Warehouse {id: props.from})
 MATCH (to: Warehouse {id: props.to})
 CREATE (from)-[:ROUTE {distance: props.distance, duration: props.duration}]->(to)
-CREATE (to)-[:ROUTE {distance: props.distance, duration: props.duration}]->(from)
+// CREATE (to)-[:ROUTE {distance: props.distance, duration: props.duration}]->(from)
 `, { routes })
 
 console.log(`Created ${routes.length} relationships ROUTE`)
@@ -171,7 +170,8 @@ RETURN gds.graph.project(
     sourceNodeProperties: source { .latitude, .longitude },
     targetNodeProperties: target { .latitude, .longitude },
     relationshipProperties: r { .distance, .duration }
-  }
+  },
+  { undirectedRelationshipTypes: ['*'] }
 )
 `)
 
@@ -191,7 +191,7 @@ driver.close();
 //   ); 
 
 
-// MATCH (source:Warehouse {name: 'Paris 1'}), (target:Warehouse {name: 'Nice 1'})
+// MATCH (source:Warehouse {name: 'Paris'}), (target:Warehouse {name: 'Nice'})
 // CALL gds.shortestPath.dijkstra.stream('WarehouseGraph', {
 //     sourceNode: source,
 //     targetNodes: target,
@@ -218,13 +218,14 @@ driver.close();
 //   {
 //     sourceNodeProperties: source { .latitude, .longitude },
 //     targetNodeProperties: target { .latitude, .longitude },
-//     relationshipProperties: r { .distance, .duration }
-//   }
+//     relationshipProperties: r { .distance, .duration },
+//   },
+//   { undirectedRelationshipTypes: ['*'] }
 // )
 
 
 
-// MATCH (source:Warehouse {name: 'Paris 4'}), (target:Warehouse {name: 'Nice 3'})
+// MATCH (source:Warehouse {name: 'Paris'}), (target:Warehouse {name: 'Nice'})
 // CALL gds.shortestPath.astar.stream('WarehouseGraph', {
 //     sourceNode: source,
 //     targetNode: target,

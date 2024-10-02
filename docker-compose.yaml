@@ -10,9 +10,9 @@ services:
 
   neo4j:
     image: neo4j:5.23.0
-    # In case of user error due to undefined $UID and $GID, run the following command:
-    # UID=$(id -u) GID=$(id -g) docker compose up
-    user: '${UID}:${GID}' 
+    # # In case of user error due to undefined $UID and $GID, run the following command:
+    # # UID=$(id -u) GID=$(id -g) docker compose up
+    # user: '${UID}:${GID}' 
     volumes:
       - ./docker/neo4j/data:/data
       - ./docker/neo4j/plugins:/plugins

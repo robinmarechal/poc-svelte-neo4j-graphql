@@ -257,3 +257,113 @@ with lastYear, apoc.create.vNode(['Year'], {year: lastYear}) as yearNode
 match (g:Games) where g.year = lastYear
 call apoc.create.vRelationship(g, 'YEAR', {}, yearNode) YIELD rel
 return g, rel, yearNode
+
+
+
+
+# GraphQL
+
+```graphql
+query {
+  games {
+    name
+    season
+    year
+    hostedInCities {
+      name
+      locatedInCountries {
+        name
+      }
+    }
+  }
+}
+```
+
+```graphql
+query {
+  nationalOlympicCommittees(where: { noc: "FRA" }) {
+    noc
+    participationsUnderNoc(
+      where: {
+        athletesHasParticipation_SOME: {
+          hasParticipationParticipations_SOME: {
+            medalGameEvents_SOME: { ofEventEvents_SOME: {} }
+          }
+        }
+      }
+    ) {
+      athletesHasParticipation {
+        name
+        hasParticipationParticipations {
+          medalGameEvents {
+            participationsMedalConnection {
+              edges {
+                properties {
+                  medal
+                }
+              }
+            }
+            ofEventEvents {
+              name
+              ofSportSports {
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+```graphql
+query {
+  games(where: { year: "2016" }) {
+    name
+    season
+    year
+    hostedInCities {
+      name
+      locatedInCountries {
+        name
+      }
+    }
+    gameEventsHostedDuringGames(
+      where: {
+        participationsMedalConnection_SOME: {
+          node: { underNocNationalOlympicCommittees_SOME: { noc: "FRA" } }
+        }
+      }
+    ) {
+      ofEventEvents {
+        name
+        ofSportSports {
+          name
+        }
+      }
+      participationsMedalConnection(
+        where: {
+          node: { underNocNationalOlympicCommittees_SOME: { noc: "FRA" } }
+        }
+      ) {
+        edges {
+          properties {
+            medal
+          }
+          node {
+            age
+            athletesHasParticipation {
+              name
+              sex
+            }
+            underNocNationalOlympicCommittees(where: { noc: "FRA" }) {
+              noc
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```

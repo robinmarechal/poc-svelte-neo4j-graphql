@@ -1,7 +1,12 @@
-import neo4j from "neo4j-driver";
-import fs from "node:fs";
 import csv from "csv-parser";
 import "dotenv/config";
+import neo4j from "neo4j-driver";
+import fs from "node:fs";
+import path from "node:path";
+import { exit } from "node:process";
+
+const MIN_YEAR = parseInt(process.argv[2] ?? 0);
+const MAX_YEAR = parseInt(process.argv[3] ?? 99999);
 
 /**
  * Neo4J node types
@@ -54,7 +59,7 @@ import "dotenv/config";
  *  @property {Number | undefined} age
  *  @property {Number | undefined} height
  *  @property {Number | undefined} weight
- * 
+ *
  * @typedef GameEventRecord
  *  @property {number} id
  *  @property {EventRecord} event
@@ -141,9 +146,7 @@ const CITY_COUNTRY = {
  */
 async function parseCsvFile(filename) {
   const sanitizeRow = (row) => {
-    return Object.fromEntries(
-      Object.entries(row).map(([k, v]) => [k, v == "NA" ? null : v])
-    );
+    return Object.fromEntries(Object.entries(row).map(([k, v]) => [k, v == "NA" ? null : v]));
   };
 
   return new Promise((resolve, reject) => {
@@ -156,8 +159,7 @@ async function parseCsvFile(filename) {
         })
       )
       .on("data", (d) => {
-        // if (d.id && d.year >= 2008) {
-        if (d.id) {
+        if (d.id && d.year >= MIN_YEAR && d.year <= MAX_YEAR) {
           data.push(sanitizeRow(d));
         }
       })
@@ -170,7 +172,16 @@ async function parseCsvFile(filename) {
   });
 }
 
-const rows = await parseCsvFile(process.argv[2] ?? "./athlete_events.csv");
+const FILENAME = process.argv[4] ?? "./athlete_events.csv";
+
+if (!fs.existsSync(FILENAME)) {
+  console.error(`ERROR: File ${FILENAME} does not exist.`);
+  console.log("This file is ignored from git because of its size. You can download it from: https://www.kaggle.com/datasets/heesoo37/120-years-of-olympic-history-athletes-and-results");
+  console.log("Download file 'athlete_events.csv' to " + path.resolve("."));
+  exit(1);
+}
+
+const rows = await parseCsvFile(FILENAME);
 
 // 1. country
 /** @type CountryRecord[] */
@@ -275,7 +286,7 @@ function createEvent(row, sport) {
   return {
     id: events.length + 1,
     name: row.event,
-    sport
+    sport,
   };
 }
 
@@ -301,16 +312,16 @@ function createAthlete(row) {
 function createNoc(row) {
   return {
     id: nocs.length + 1,
-    noc: row.noc
+    noc: row.noc,
   };
 }
 
 /**
- * 
- * @param {GamesRecord} games 
- * @param {EventRecord} event 
- * @param {CityRecord} city 
- * @param {ParticipationRecord} participation 
+ *
+ * @param {GamesRecord} games
+ * @param {EventRecord} event
+ * @param {CityRecord} city
+ * @param {ParticipationRecord} participation
  * @returns {GameEventRecord}
  */
 function createGameEvent(event, games, city, participation) {
@@ -319,15 +330,15 @@ function createGameEvent(event, games, city, participation) {
     games,
     event,
     city,
-    participation
-  }
+    participation,
+  };
 }
 
 /**
- * 
- * @param {CsvRow} row 
- * @param {AthleteRecord} athlete 
- * @param {NocRecord} noc 
+ *
+ * @param {CsvRow} row
+ * @param {AthleteRecord} athlete
+ * @param {NocRecord} noc
  * @param {GamesRecord} gameEvent
  * @returns {ParticipationRecord}
  */
@@ -337,25 +348,25 @@ function createParticipation(row, athlete, noc, games) {
     athlete,
     games,
     noc,
-    age: row.age == 'NA' ? null : row.age,
-    height: row.height == 'NA' ? null : row.height,
-    weight: row.weight == 'NA' ? null : row.weight,
-  }
+    age: row.age == "NA" ? null : row.age,
+    height: row.height == "NA" ? null : row.height,
+    weight: row.weight == "NA" ? null : row.weight,
+  };
 }
 
 /**
- * 
- * @param {CsvRow} row 
- * @param {ParticipationRecord} participation 
- * @param {GameEventRecord} gameEvent 
+ *
+ * @param {CsvRow} row
+ * @param {ParticipationRecord} participation
+ * @param {GameEventRecord} gameEvent
  * @returns {ParticipationMedalRecord}
  */
 function createMedal(row, participation, gameEvent) {
   return {
     medal: row.medal,
     participation,
-    gameEvent
-  }
+    gameEvent,
+  };
 }
 
 /**
@@ -400,9 +411,7 @@ function findOrAddGames(row) {
 }
 
 function findOrAddGamesCities(games, city) {
-  let gamesCity = gamesCities.find(
-    (gc) => gc.city === city && gc.games === games
-  );
+  let gamesCity = gamesCities.find((gc) => gc.city === city && gc.games === games);
   if (!gamesCity) {
     gamesCity = createGamesCities(games, city);
     gamesCities.push(gamesCity);
@@ -438,38 +447,38 @@ function findOrAddAthlete(row) {
 }
 
 function findOrAddNoc(row) {
-  let noc = nocs.find(n => n.noc === row.noc)
+  let noc = nocs.find((n) => n.noc === row.noc);
   if (!noc) {
-    noc = createNoc(row)
-    nocs.push(noc)
+    noc = createNoc(row);
+    nocs.push(noc);
   }
   return noc;
 }
 
 function findOrAddGameEvent(event, games, city, participation) {
-  const key = `${event.id}-${games.id}-${city.id}-${participation.id}`
-  let gameEvent = gameEvents.get(key)
+  const key = `${event.id}-${games.id}-${city.id}-${participation.id}`;
+  let gameEvent = gameEvents.get(key);
   if (!gameEvent) {
-    gameEvent = createGameEvent(event, games, city, participation)
-    gameEvents.set(key, gameEvent)
+    gameEvent = createGameEvent(event, games, city, participation);
+    gameEvents.set(key, gameEvent);
   }
-  return gameEvent
+  return gameEvent;
 }
 
 function storeParticipation(row, athlete, noc, games) {
-  const key = `${athlete.id}-${noc.id}-${games.id}`
-  let participation = participations.get(key)
+  const key = `${athlete.id}-${noc.id}-${games.id}`;
+  let participation = participations.get(key);
   if (!participation) {
     participation = createParticipation(row, athlete, noc, games);
-    participations.set(key, participation)
+    participations.set(key, participation);
   }
-  return participation
+  return participation;
 }
 
 function storeMedal(row, participation, gameEvent) {
-  if (row.medal && row.medal != 'NA') {
-    const participationMedal = createMedal(row, participation, gameEvent)
-    participationMedals.push(participationMedal)
+  if (row.medal && row.medal != "NA") {
+    const participationMedal = createMedal(row, participation, gameEvent);
+    participationMedals.push(participationMedal);
   }
 }
 
@@ -486,10 +495,10 @@ for (let i = 0; i < rows.length; i++) {
 
   const athlete = findOrAddAthlete(row);
 
-  const noc = findOrAddNoc(row)
-  const participation = storeParticipation(row, athlete, noc, games)
-  const gameEvent = findOrAddGameEvent(event, games, city, participation)
-  const medal = storeMedal(row, participation, gameEvent)
+  const noc = findOrAddNoc(row);
+  const participation = storeParticipation(row, athlete, noc, games);
+  const gameEvent = findOrAddGameEvent(event, games, city, participation);
+  const medal = storeMedal(row, participation, gameEvent);
 
   if (i % 1000 === 0) {
     console.log(`Processed row #${i}`);
@@ -597,10 +606,7 @@ function toCypherProperties(obj) {
 //////////////////////////// NEO4J
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const driver = neo4j.driver(
-  process.env.NEO4J_URL,
-  neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD)
-);
+const driver = neo4j.driver(process.env.NEO4J_URL, neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD));
 
 // const session = driver.session();
 
@@ -625,17 +631,17 @@ function asQueryParam(obj) {
 }
 
 // await session.executeWrite(async (tx) => {
-await driver.executeQuery("CREATE INDEX country_idx_id IF NOT EXISTS FOR (n:Country) ON (n.id)")
-await driver.executeQuery("CREATE INDEX city_idx_id IF NOT EXISTS FOR (n:City) ON (n.id)")
-await driver.executeQuery("CREATE INDEX games_idx_id IF NOT EXISTS FOR (n:Games) ON (n.id)")
-await driver.executeQuery("CREATE INDEX sport_idx_id IF NOT EXISTS FOR (n:Sport) ON (n.id)")
-await driver.executeQuery("CREATE INDEX event_idx_id IF NOT EXISTS FOR (n:Event) ON (n.id)")
-await driver.executeQuery("CREATE INDEX team_idx_id IF NOT EXISTS FOR (n:Team) ON (n.id)")
-await driver.executeQuery("CREATE INDEX athlete_idx_id IF NOT EXISTS FOR (n:Athlete) ON (n.id)")
-await driver.executeQuery("CREATE INDEX nationalolympiccommittee_idx_id IF NOT EXISTS FOR (n:NationalOlympicCommittee) ON (n.id)")
-await driver.executeQuery("CREATE INDEX gameevent_idx_id IF NOT EXISTS FOR (n:GameEvent) ON (n.id)")
-await driver.executeQuery("CREATE INDEX participation_idx_id IF NOT EXISTS FOR (n:Participation) ON (n.id)")
-console.log("Created indexes if not exist")
+await driver.executeQuery("CREATE INDEX country_idx_id IF NOT EXISTS FOR (n:Country) ON (n.id)");
+await driver.executeQuery("CREATE INDEX city_idx_id IF NOT EXISTS FOR (n:City) ON (n.id)");
+await driver.executeQuery("CREATE INDEX games_idx_id IF NOT EXISTS FOR (n:Games) ON (n.id)");
+await driver.executeQuery("CREATE INDEX sport_idx_id IF NOT EXISTS FOR (n:Sport) ON (n.id)");
+await driver.executeQuery("CREATE INDEX event_idx_id IF NOT EXISTS FOR (n:Event) ON (n.id)");
+await driver.executeQuery("CREATE INDEX team_idx_id IF NOT EXISTS FOR (n:Team) ON (n.id)");
+await driver.executeQuery("CREATE INDEX athlete_idx_id IF NOT EXISTS FOR (n:Athlete) ON (n.id)");
+await driver.executeQuery("CREATE INDEX nationalolympiccommittee_idx_id IF NOT EXISTS FOR (n:NationalOlympicCommittee) ON (n.id)");
+await driver.executeQuery("CREATE INDEX gameevent_idx_id IF NOT EXISTS FOR (n:GameEvent) ON (n.id)");
+await driver.executeQuery("CREATE INDEX participation_idx_id IF NOT EXISTS FOR (n:Participation) ON (n.id)");
+console.log("Created indexes if not exist");
 // })
 
 // await session.executeWrite(async (tx) => {
@@ -649,7 +655,7 @@ await driver.executeQuery("MATCH (n:Athlete) DETACH DELETE n;");
 await driver.executeQuery("MATCH (n:NationalOlympicCommittee) DETACH DELETE n;");
 await driver.executeQuery("MATCH (n:GameEvent) DETACH DELETE n;");
 await driver.executeQuery("MATCH (n:Participation) DETACH DELETE n;");
-console.log("Deleted existing nodes")
+console.log("Deleted existing nodes");
 
 //   for (let query of cypherQueries) {
 //     if (!query || query === "" || query.trim().startsWith("//")) {
@@ -669,7 +675,7 @@ await driver.executeQuery(
   `,
   { countries: asQueryParam(countries) }
 );
-console.log("Created nodes Country")
+console.log("Created nodes Country");
 
 await driver.executeQuery(
   `
@@ -679,7 +685,7 @@ await driver.executeQuery(
   `,
   { cities: asQueryParam(cities) }
 );
-console.log("Created nodes City and relationship LOCATED_IN Country")
+console.log("Created nodes City and relationship LOCATED_IN Country");
 
 await driver.executeQuery(
   `
@@ -688,7 +694,7 @@ await driver.executeQuery(
   `,
   { games: asQueryParam(gamesList) }
 );
-console.log("Created nodes Games")
+console.log("Created nodes Games");
 
 await driver.executeQuery(
   `
@@ -699,8 +705,7 @@ await driver.executeQuery(
   `,
   { gamesCities: asQueryParam(gamesCities) }
 );
-console.log("Created relationships Games HOSTED_IN City")
-
+console.log("Created relationships Games HOSTED_IN City");
 
 await driver.executeQuery(
   `
@@ -709,7 +714,7 @@ await driver.executeQuery(
   `,
   { sports: asQueryParam(sports) }
 );
-console.log("Created nodes Sport")
+console.log("Created nodes Sport");
 
 await driver.executeQuery(
   `
@@ -719,19 +724,20 @@ CREATE (event: Event)-[:OF_SPORT]->(sport) SET event = props.values
 `,
   { events: asQueryParam(events) }
 );
-console.log("Created nodes Event and relationships OF_SPORT sport")
+console.log("Created nodes Event and relationships OF_SPORT sport");
 
-await driver.executeQuery(`
+await driver.executeQuery(
+  `
     UNWIND $nocs as props
     CREATE (n:NationalOlympicCommittee) SET n = props.values
-    `, { nocs: asQueryParam(nocs) }
-)
-console.log("Created nodes NationalOlympicCommittee")
+    `,
+  { nocs: asQueryParam(nocs) }
+);
+console.log("Created nodes NationalOlympicCommittee");
 
-
-const athletesList = [...Array.from(athletes.values())]
+const athletesList = [...Array.from(athletes.values())];
 while (athletesList.length) {
-  const removed = athletesList.splice(0, 10000)
+  const removed = athletesList.splice(0, 10000);
   await driver.executeQuery(
     `
         UNWIND $athletes as props
@@ -740,13 +746,13 @@ while (athletesList.length) {
     `,
     { athletes: asQueryParam(removed) }
   );
-  console.log("Created " + removed.length + " nodes. " + athletesList.length + " remaining")
+  console.log("Created " + removed.length + " nodes. " + athletesList.length + " remaining");
 }
-console.log("Created nodes Athlete")
+console.log("Created nodes Athlete");
 
-const tmpParticipations = [...Array.from(participations.values())]
+const tmpParticipations = [...Array.from(participations.values())];
 while (tmpParticipations.length) {
-  const removed = tmpParticipations.splice(0, 10000)
+  const removed = tmpParticipations.splice(0, 10000);
 
   await driver.executeQuery(
     `
@@ -761,18 +767,16 @@ while (tmpParticipations.length) {
     { participations: asQueryParam(removed) }
   );
 
-  console.log("Created " + removed.length + " nodes Participation... " + tmpParticipations.length + " remaining")
+  console.log("Created " + removed.length + " nodes Participation... " + tmpParticipations.length + " remaining");
 }
 
-
-console.log("Created nodes Participation and UNDER_NOC, OF_EVENT, PARTICIPATED_IN, IN_EVENT, AT_GAMES and IN_CITY")
+console.log("Created nodes Participation and UNDER_NOC, OF_EVENT, PARTICIPATED_IN, IN_EVENT, AT_GAMES and IN_CITY");
 // console.log(participations)
 // console.log(asQueryParam(participations))
 
-
-const gameEventList = [...Array.from(gameEvents.values())]
+const gameEventList = [...Array.from(gameEvents.values())];
 while (gameEventList.length) {
-  const removed = gameEventList.splice(0, 10000)
+  const removed = gameEventList.splice(0, 10000);
   await driver.executeQuery(
     `
 UNWIND $gameEvents as props
@@ -786,18 +790,20 @@ CREATE (city)-[:HOSTED_EVENT]->(ge)-[:HOSTED_DURING_GAMES]->(games)
 `,
     { gameEvents: asQueryParam(removed) }
   );
-  console.log("Created " + removed.length + " nodes GameEvent. " + gameEventList.length + " remaining")
+  console.log("Created " + removed.length + " nodes GameEvent. " + gameEventList.length + " remaining");
 }
-console.log("Created nodes GameEvent and relationship OF_EVENT, HOSTED_IN_CITY and HOSTED_DURING_GAMES")
+console.log("Created nodes GameEvent and relationship OF_EVENT, HOSTED_IN_CITY and HOSTED_DURING_GAMES");
 
-
-await driver.executeQuery(`
+await driver.executeQuery(
+  `
   UNWIND $medals as props
   MATCH (participation: Participation {id: props.relations.participation.id})
   MATCH (gameEvent: GameEvent {id: props.relations.gameEvent.id})
   CREATE (participation)-[r:MEDAL]->(gameEvent) SET r = props.values
-  `, { medals: asQueryParam(participationMedals) })
-console.log("Created relationships Participation MEDAL GameEvent")
+  `,
+  { medals: asQueryParam(participationMedals) }
+);
+console.log("Created relationships Participation MEDAL GameEvent");
 
 // });
 
