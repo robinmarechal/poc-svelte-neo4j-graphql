@@ -2,8 +2,8 @@ import { faker } from "@faker-js/faker";
 import "dotenv/config";
 import neo4j from "neo4j-driver";
 
-const NB_USERS = parseInt(process.argv[2] ?? 100);
-const NB_VIDEOS = parseInt(process.argv[3] ?? 10);
+const NB_USERS = parseInt(process.argv[2] ?? 1000);
+const NB_VIDEOS = parseInt(process.argv[3] ?? 50);
 
 const LIKE_RATE = 0.75
 const SUBSCRIPTION_RATE = 0.75
@@ -182,7 +182,7 @@ for (let view of views) {
         target: view.video.author
     })
 
-    likesCache.add(cacheKey);
+    subsCache.add(cacheKey);
 }
 
 
@@ -269,30 +269,30 @@ const driver = neo4j.driver(
 );
 
 await driver.executeQuery(`MATCH (n:Yt) DETACH DELETE n`);
-await driver.executeQuery(`MATCH (n:User) DETACH DELETE n`);
-await driver.executeQuery(`MATCH (n:Video) DETACH DELETE n`);
+await driver.executeQuery(`MATCH (n:YtUser) DETACH DELETE n`);
+await driver.executeQuery(`MATCH (n:YtVideo) DETACH DELETE n`);
 
 // console.log(users);
 await driver.executeQuery(`
 UNWIND $users as props
-CREATE (u:Yt:User) SET u = props
+CREATE (u:Yt:YtUser) SET u = props
 `, { users })
 
-console.log(`Created ${users.length} nodes User`)
+console.log(`Created ${users.length} nodes YtUser`)
 
 await driver.executeQuery(`
 UNWIND $videos as props
-MATCH (u:User {id: props.author.id})
-CREATE (v:Yt:Video {id: props.id, title: props.title, timestamp: datetime(props.timestamp), duration: props.duration})
+MATCH (u:YtUser {id: props.author.id})
+CREATE (v:Yt:YtVideo {id: props.id, title: props.title, timestamp: datetime(props.timestamp), duration: props.duration})
 CREATE (u)-[:PUBLISHED {timestamp: datetime(props.timestamp)}]->(v)
 `, { videos: toVideoDto(videos) })
 
-console.log(`Created ${videos.length} nodes Video with relationship PUBLISHED`)
+console.log(`Created ${videos.length} nodes YtVideo with relationship PUBLISHED`)
 
 await driver.executeQuery(`
 UNWIND $subscriptions as props
-MATCH (source:User {id: props.source.id})
-MATCH (target:User {id: props.target.id})
+MATCH (source:YtUser {id: props.source.id})
+MATCH (target:YtUser {id: props.target.id})
 CREATE (source)-[:SUBSCRIBED_TO {since: datetime(props.since)}]->(target)
 `, { subscriptions: toSubscriptionDto(subscriptions) })
 
@@ -300,8 +300,8 @@ console.log(`Created ${subscriptions.length} relationsships SUBSCRIBED_TO`)
 
 await driver.executeQuery(`
 UNWIND $views as props
-MATCH (user:User {id: props.user.id})
-MATCH (video:Video {id: props.video.id})
+MATCH (user:YtUser {id: props.user.id})
+MATCH (video:YtVideo {id: props.video.id})
 CREATE (user)-[:VIEWED {completion: props.completion, timestamp: datetime(props.timestamp)}]->(video)
 `, { views: toViewDto(views) })
 
@@ -309,8 +309,8 @@ console.log(`Created ${views.length} relationsships VIEWED`)
 
 await driver.executeQuery(`
 UNWIND $likes as props
-MATCH (user:User {id: props.user.id})
-MATCH (video:Video {id: props.video.id})
+MATCH (user:YtUser {id: props.user.id})
+MATCH (video:YtVideo {id: props.video.id})
 CREATE (user)-[:LIKED {timestamp: datetime(props.timestamp)}]->(video)
 `, { likes: toLikeDto(likes) })
 
@@ -318,38 +318,29 @@ console.log(`Created ${likes.length} relationsships LIKED`)
 
 driver.close();
 
-// MATCH path = (n: User {id: 1})-[v1:VIEWED]->(viewedVideo:Video)<-[v2:VIEWED]-(u:User)-[v3:VIEWED]->(suggestedVideo:Video)
-// WHERE NOT EXISTS((n)-[:VIEWED]->(suggestedVideo))
-//     AND v1.completion > 0.5 AND v2.completion > 0.5 AND v3.completion > 0.5
-//     AND n <> u
-//     AND viewedVideo <> suggestedVideo
-// OPTIONAL MATCH allPaths = (n)-[:VIEWED]->()<-[:VIEWED]-(u)
-// WITH *, v1.completion * v2.completion * v3.completion as combinedCompletion, count(allPaths) as nbPaths
-// RETURN viewedVideo, suggestedVideo, path, allPaths
-// ORDER BY nbPaths DESC, combinedCompletion DESC
-// LIMIT 3
+// MATCH (n:YtVideo) WITH n LIMIT 5
+// MATCH (u:YtUser)-->(n)
+// RETURN n,u LIMIT 100
+
+// MATCH (n: YtUser {id: 1}) RETURN n
 
 
-// MATCH path = (n: User {id: 1})-[v1:VIEWED]->(viewedVideo:Video)<-[v2:VIEWED]-(u:User)-[v3:VIEWED]->(suggestedVideo:Video)
-// WHERE NOT EXISTS((n)-[:VIEWED]->(suggestedVideo))
-//      AND n <> u
-//      AND viewedVideo <> suggestedVideo
-// OPTIONAL MATCH paths = (n)-[:VIEWED|LIKED]->()<-[:VIEWED|LIKED]-(u)-[:VIEWED|LIKED]->(suggestedVideo)
-// WITH viewedVideo, suggestedVideo, collect(paths) as allPaths
-// WITH *, size(allPaths) as nbPaths
-// RETURN viewedVideo, suggestedVideo, suggestedVideo.title as title, allPaths, nbPaths
+
+
+// MATCH (n: YtUser {id: 1})-[v1:VIEWED]->(video:YtVideo)
+//
+// MATCH (video:YtVideo)<-[v2:VIEWED]-(u:YtUser)
+// WHERE n <> u
+//
+// MATCH (u:YtUser)-[v3:VIEWED]->(suggestion:YtVideo)
+// WHERE NOT EXISTS((n)-[:VIEWED]->(suggestion))
+//     AND v1.completion > 0.5 
+//     AND v2.completion > 0.5 
+//     AND v3.completion > 0.5
+//
+// MATCH allPaths = (n)-[]->()<-[]-(u)
+// WITH n, video, suggestion, count(allPaths) as nbPaths LIMIT 3
+//
+// MATCH path=(n)-->(video)<--(u)-->(suggestion)
+// RETURN path, nbPaths
 // ORDER BY nbPaths DESC
-// LIMIT 3
-
-
-// MATCH path = (n: User {id: 1})-[v1:VIEWED]->(viewedVideo:Video)<-[v2:VIEWED]-(u:User)-[v3:VIEWED]->(suggestedVideo:Video)
-// WHERE NOT EXISTS((n)-[:VIEWED]->(suggestedVideo))
-//      AND n <> u
-//      AND viewedVideo <> suggestedVideo
-// OPTIONAL MATCH paths = (n)-[:VIEWED|LIKED]->()<-[:VIEWED|LIKED]-(u)-[:VIEWED|LIKED]->(suggestedVideo)
-// WITH n, viewedVideo, suggestedVideo, collect(paths) as allPaths
-// WITH *, size(allPaths) as nbPaths
-// CALL apoc.create.vRelationship(n, 'SUGGESTION', {score: nbPaths}, suggestedVideo) YIELD rel
-// RETURN suggestedVideo, rel, n, nbPaths as score
-// ORDER BY nbPaths DESC
-// LIMIT 3

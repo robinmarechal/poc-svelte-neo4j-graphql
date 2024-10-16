@@ -177,39 +177,9 @@ RETURN gds.graph.project(
 
 driver.close();
 
-// CALL gds.graph.drop('WarehouseGraph', false);
-
-// CALL gds.graph.project(
-//     'WarehouseGraph', 
-//     'Warehouse', 
-//     {
-//       ROUTE: {
-//         type: 'ROUTE',
-//         properties: 'duration'
-//       }
-//     }
-//   ); 
 
 
-// MATCH (source:Warehouse {name: 'Paris'}), (target:Warehouse {name: 'Nice'})
-// CALL gds.shortestPath.dijkstra.stream('WarehouseGraph', {
-//     sourceNode: source,
-//     targetNodes: target,
-//     relationshipWeightProperty: 'duration'
-// })
-// YIELD index, sourceNode, targetNode, totalCost, nodeIds, costs, path
-// RETURN
-//     index,
-//     gds.util.asNode(sourceNode).name AS sourceNodeName,
-//     gds.util.asNode(targetNode).name AS targetNodeName,
-//     totalCost,
-//     [nodeId IN nodeIds | gds.util.asNode(nodeId).name] AS nodeNames,
-//     costs,
-//     nodes(path) as path
-// ORDER BY index;
-
-
-
+// // Création de graphe pour Dijkstra et A*
 // MATCH (source:Warehouse)-[r:ROUTE]->(target:Warehouse)
 // RETURN gds.graph.project(
 //   'WarehouseGraph',
@@ -218,28 +188,42 @@ driver.close();
 //   {
 //     sourceNodeProperties: source { .latitude, .longitude },
 //     targetNodeProperties: target { .latitude, .longitude },
-//     relationshipProperties: r { .distance, .duration },
+//     relationshipProperties: r { .distance, .duration }
 //   },
 //   { undirectedRelationshipTypes: ['*'] }
 // )
 
-
-
+// // Dijkstra
 // MATCH (source:Warehouse {name: 'Paris'}), (target:Warehouse {name: 'Nice'})
-// CALL gds.shortestPath.astar.stream('WarehouseGraph', {
+// CALL gds.shortestPath.dijkstra.stream('WarehouseGraph', {
 //     sourceNode: source,
-//     targetNode: target,
-//     latitudeProperty: 'latitude',
-//     longitudeProperty: 'longitude',
+//     targetNodes: target,
 //     relationshipWeightProperty: 'duration'
 // })
 // YIELD index, sourceNode, targetNode, totalCost, nodeIds, costs, path
 // RETURN
-//     index,
 //     gds.util.asNode(sourceNode).name AS sourceNodeName,
 //     gds.util.asNode(targetNode).name AS targetNodeName,
-//     totalCost,
-//     [nodeId IN nodeIds | gds.util.asNode(nodeId).name] AS nodeNames,
-//     costs,
-//     nodes(path) as path
-// ORDER BY index
+//     totalCost AS totalDuration,
+//     [nodeId IN nodeIds | gds.util.asNode(nodeId).name] AS path_steps,
+//     costs AS path_costs,
+//     nodes(path) AS path
+
+
+// // A*
+// MATCH (source:Warehouse {name: 'Paris'}), (target:Warehouse {name: 'Nice'})
+// CALL gds.shortestPath.astar.stream('WarehouseGraph', {
+//   sourceNode: source,
+//   targetNode: target,
+//   latitudeProperty: 'latitude',
+//   longitudeProperty: 'longitude',
+//   relationshipWeightProperty: 'duration'
+// })
+// YIELD index, sourceNode, targetNode, totalCost, nodeIds, costs, path
+// RETURN
+//   gds.util.asNode(sourceNode).name AS from,
+//   gds.util.asNode(targetNode).name AS to,
+//   totalCost AS duration,
+//   [nodeId IN nodeIds | gds.util.asNode(nodeId).name] AS path_steps,
+//   costs AS path_costs,
+//   nodes(path) AS path
