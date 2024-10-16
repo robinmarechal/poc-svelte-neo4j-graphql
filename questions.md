@@ -84,10 +84,9 @@ CALL apoc.create.vRelationship(g, 'YEAR', {}, yearNode) yield rel
 RETURN p, yearNode, rel
 ```
 
-### Which country has hosted the most olympics? What is top 3?
+### Which country has hosted the most olympics? 
 
-#### Without ex-aequos
-
+#### Top 1
 
 ```cypher
 MATCH p=(country: Country)<-[:LOCATED_IN]-(city: City)<-[:HOSTED_IN]-(g:Games)
@@ -96,7 +95,27 @@ RETURN paths
 ORDER BY cnt DESC LIMIT 1
 ```
 
-#### WITH ex-aequos
+#### Top 2
+
+```cypher
+MATCH p=(country: Country)<-[:LOCATED_IN]-(city: City)<-[:HOSTED_IN]-(g:Games)
+WHERE country.name <> 'United States'
+WITH country, collect(p) AS paths, count(p) AS cnt
+RETURN paths
+ORDER BY cnt DESC LIMIT 1
+```
+
+#### Top 3 countries which hosted the most olympics
+##### Without ex-aequos
+
+```cypher
+MATCH p=(country: Country)<-[:LOCATED_IN]-(city: City)<-[:HOSTED_IN]-(g:Games)
+WITH country, collect(p) AS paths, count(p) AS cnt
+RETURN paths
+ORDER BY cnt DESC LIMIT 3
+```
+
+##### WITH ex-aequos
 
 ```cypher
 CALL() {
@@ -114,8 +133,6 @@ WITH cnt, country, collect(p) AS paths, count(p) AS countryCnt
 WHERE countryCnt >= cnt
 RETURN paths
 ```
-
-
 
 ### Was there any OG hosted by more than one country ? 
 
