@@ -96,6 +96,20 @@ type Sport {
   name: String!
 }
 
+# // All games and host coties and countries
+# query {
+#   games {
+#     name,
+#     hostedInCities {
+#       name
+#       locatedInCountries {
+#         name
+#       }
+#     }
+#   }
+# }
+
+# // French athletes won have won a medal at Rio 2016 Olympics
 # query {
 #   games(where: { year: "2016" }) {
 #     name

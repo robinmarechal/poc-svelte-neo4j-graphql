@@ -7,6 +7,8 @@ services:
     image: rmarechal/svelte-neo4j-graphql-apollo-server
     ports:
       - "4000:4000"
+    environment:
+      - NEO4J_URL=bolt://neo4j:7687
 
   neo4j:
     image: neo4j:5.23.0
