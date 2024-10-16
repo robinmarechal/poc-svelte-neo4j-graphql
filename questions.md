@@ -2,6 +2,7 @@
 
 A list of questions for live presentation which can be answered using cypher queries
 
+
 ### Retrieving all games
 
 ```cypher 
@@ -70,7 +71,7 @@ WHERE g.year = lastYear
 RETURN p
 ```
 
-#### Nerd version, WITH virtual node and relationship
+#### Nerd version, with virtual node and relationship
 ```cypher
 MATCH (g:Games) 
 WITH g.year AS y, collect(g.season) AS seasons
@@ -82,6 +83,15 @@ MATCH p=(g:Games)-[:HOSTED_IN]->(:City)-[:LOCATED_IN]->(:Country)
 WHERE g.year = lastYear
 CALL apoc.create.vRelationship(g, 'YEAR', {}, yearNode) yield rel
 RETURN p, yearNode, rel
+```
+
+#### Detailed history
+
+```cypher
+MATCH (g:Games) 
+WITH g.year AS gyear, collect(g.season) AS coll
+RETURN gyear, coll
+ORDER BY gyear ASC
 ```
 
 ### Which country has hosted the most olympics? 
@@ -115,7 +125,7 @@ RETURN paths
 ORDER BY cnt DESC LIMIT 3
 ```
 
-##### WITH ex-aequos
+##### with ex-aequos
 
 ```cypher
 CALL() {
@@ -137,7 +147,7 @@ RETURN paths
 ### Was there any OG hosted by more than one country ? 
 
 ```cypher
-MATCH p=(g:Games)-[:HOSTED_IN]->(:City)-[:LOCATED_IN]->(:Country)
+MATCH p=(g:Games)-->(:City)-[:LOCATED_IN]->(:Country)
 WITH g, collect(p) AS paths
 WHERE size(paths) > 1
 RETURN paths
@@ -145,7 +155,7 @@ RETURN paths
 
 Sports hosted by Stockholm
 ```cypher
-MATCH p=(g:Games {name: '1956 Summer'})-[:HOSTED_IN]->(city:City {name: 'Stockholm'})-->(ge:GameEvent)-->(e:Event)-->(s:Sport)
+MATCH p=(g:Games {name: '1956 Summer'})-->(city:City {name: 'Stockholm'})-->(ge:GameEvent)-->(e:Event)-->(s:Sport)
 MATCH (city)-->(ge:GameEvent)-->(e:Event)-->(s:Sport)
 WHERE EXISTS ((g)<--(ge))
 RETURN s
@@ -153,7 +163,7 @@ RETURN s
 
 Nerd version: Both cities and the sports they hosted
 ```cypher
-MATCH p=(games:Games)-[:HOSTED_IN]->(city:City)-[:LOCATED_IN]->(:Country)
+MATCH p=(games:Games)-->(city:City)-[:LOCATED_IN]->(:Country)
 WITH games, collect(city) AS cities, collect(p) AS paths
 WHERE size(paths) > 1
 
@@ -167,16 +177,16 @@ RETURN games, city, sport, hosted_sport
 
 ### Medals ranking
 
-#### Countries WITH most medals in history
+#### Countries with most medals in history
 
 ```cypher
 MATCH (noc:NationalOlympicCommittee)<-[:UNDER_NOC]-(part:Participation)-[:MEDAL]->(ge:GameEvent)
 WITH noc, count(ge) AS nbMedals
-RETURN noc, nbMedals
+RETURN noc.noc, nbMedals
 ORDER BY nbMedals DESC LIMIT 20
 ```
 
-#### Athletes WITH most medals in history
+#### Athletes with most medals in history
 
 ```cypher
 MATCH (ath:Athlete)-[:HAS_PARTICIPATION]->(part:Participation)-[medal:MEDAL]->(ge:GameEvent)-[:OF_EVENT]->(ev:Event)-[:OF_SPORT]->(sp:Sport)
@@ -190,7 +200,7 @@ ORDER BY nbMedals DESC LIMIT 10
 
 ### Athlete stats
 
-#### Athlete WITH the most number or participations to distinct games 
+#### Athlete with the most number or participations to distinct games 
 
 ```cypher
 MATCH (ath:Athlete)-[:HAS_PARTICIPATION]->(part:Participation)-[:PARTICIPATION]->(ge:GameEvent)-[:OF_EVENT]->(ev:Event)-[:OF_SPORT]->(sp:Sport)
@@ -204,7 +214,7 @@ RETURN ath.name, nocs, sports, size(games) AS nbGames, games
 ORDER BY nbGames DESC LIMIT 10
 ```
 
-#### Number of games WITH at least one medal per athlete
+#### Athletes who have won at least one medal to the most distinct games
 
 ```cypher
 MATCH (ath:Athlete)-[:HAS_PARTICIPATION]->(part:Participation)-[medal:MEDAL]->(ge:GameEvent)-[:OF_EVENT]->(ev:Event)-[:OF_SPORT]->(sp:Sport)
@@ -220,28 +230,29 @@ ORDER BY size(games) DESC, nbMedals DESC LIMIT 10
 ```
 
 
-MATCH p=(country: Country {name: 'France'})-[*..2]-(g:Games)
-RETURN p
+### Sports never won by the USA
 
-MATCH (g:Games) 
-WITH g.year AS gyear, collect(g.season) AS coll
-RETURN gyear, coll
-ORDER BY gyear ASC
-
-
-
-### ???
-
-#### Sports still present
-
-#### Sports ever won by the USA
+#### 1. Sports ever won by the USA
 
 ```cypher
 MATCH (noc:NationalOlympicCommittee {noc: 'USA'})<-[:UNDER_NOC]-()-[:MEDAL]->()-[:OF_EVENT]->()-[:OF_SPORT]->(sp:Sport)
 RETURN distinct sp
 ```
 
-#### Sports never won by the USA
+#### 2. Sports still present
+
+```cypher
+MATCH (g:Games {season: 'Summer'})
+
+WITH max(g.year) AS lastYear
+MATCH (g: Games) WHERE g.year = lastYear
+MATCH (g)<-[:HOSTED_DURING_GAMES]-(ge:GameEvent)-[:OF_EVENT]->(ev:Event)-[:OF_SPORT]->(sp:Sport)
+
+WITH collect(distinct sp) AS currentSports
+return currentSports
+```
+
+#### Result: Sports never won by the USA
 
 ```cypher
 MATCH (g:Games {season: 'Summer'})
@@ -259,39 +270,6 @@ MATCH (sp)
 WHERE not sp  in sportWithMedal
 RETURN sp.name
 ```
-
-
-
-
-MATCH (g:Games) 
-WITH g.year AS y, collect(g.season) AS seasons
-WHERE size(seasons) = 2
-WITH max(y) AS lastYear
-
-MATCH (g:Games) WHERE g.year = lastYear
-WITH apoc.create.virtual.node('Year', {year: lastYear}) AS yearNode
-
-MATCH p=(g:Games)-[]-(:City)-[]-(:Country)
-WHERE g.year = yearNode.year
-RETURN yearNode,p
-
-
-
-
-
-
-
-MATCH (g:Games) 
-WITH g.year AS y, collect(g.season) AS seasons
-WHERE size(seasons) = 2
-WITH max(y) AS lastYear
-WITH lastYear, apoc.create.vNode(['Year'], {year: lastYear}) AS yearNode
-
-MATCH (g:Games) WHERE g.year = lastYear
-CALL apoc.create.vRelationship(g, 'YEAR', {}, yearNode) YIELD rel
-RETURN g, rel, yearNode
-
-
 
 
 # GraphQL
