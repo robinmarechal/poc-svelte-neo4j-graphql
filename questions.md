@@ -143,6 +143,15 @@ WHERE size(paths) > 1
 RETURN paths
 ```
 
+Sports hosted by Stockholm
+```cypher
+MATCH p=(g:Games {name: '1956 Summer'})-[:HOSTED_IN]->(city:City {name: 'Stockholm'})-->(ge:GameEvent)-->(e:Event)-->(s:Sport)
+MATCH (city)-->(ge:GameEvent)-->(e:Event)-->(s:Sport)
+WHERE EXISTS ((g)<--(ge))
+RETURN s
+```
+
+Nerd version: Both cities and the sports they hosted
 ```cypher
 MATCH p=(games:Games)-[:HOSTED_IN]->(city:City)-[:LOCATED_IN]->(:Country)
 WITH games, collect(city) AS cities, collect(p) AS paths
