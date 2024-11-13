@@ -27,3 +27,24 @@ services:
     ports:
       - "7474:7474"
       - "7687:7687"
+
+  # Grafana Alloy batches and processes traces sent to it, generating
+  # auto-logs from those traces.
+  # Includes Metrics, Logs, Traces and Profiles.
+  alloy:
+    image: grafana/alloy:v1.3.1
+    network_mode: host
+    ports:
+      - "12345:12345"
+      - "12348:12348"
+      - "6832:6832"
+      - "55679:55679"
+    volumes:
+      - "./neo4j-data-importer/alloy/config.alloy:/etc/alloy/config.alloy"
+      - "./neo4j-data-importer/alloy/endpoints.json:/etc/alloy/endpoints.json"
+    command: [
+      "run",
+      "--server.http.listen-addr=0.0.0.0:12345",
+      "--stability.level=public-preview",
+      "/etc/alloy/config.alloy",
+    ]

@@ -16,3 +16,5 @@ docker/neo4j/data/*
 docker/neo4j/plugins/*
 !docker/neo4j/data/.gitkeep
 !docker/neo4j/plugins/.gitkeep
+
+endpoints.json

@@ -1,0 +1,34 @@
+{
+    "metrics": {
+        "url": "<url>",
+        "basicAuth": {
+            "username": "<user id>",
+            "password": "<token>"
+        }
+    },
+    "logs": {
+        "url": "<url>",
+        "basicAuth": {
+            "username": "<user id>",
+            "password": "<token>"
+        }
+    },
+    "traces": {
+        "url": "<url>",
+        "tls": {
+            "insecure": false,
+            "insecureSkipVerify": true
+        },
+        "basicAuth": {
+            "username": "<user id>",
+            "password": "<token>"
+        }
+    },
+    "profiles": {
+        "url": "<url>",
+        "basicAuth": {
+            "username": "<user id>",
+            "password": "<token>"
+        }
+    }
+}
