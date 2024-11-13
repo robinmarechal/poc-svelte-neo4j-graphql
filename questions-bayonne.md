@@ -22,7 +22,7 @@ ORDER BY g.year ASC
 LIMIT 1
 ```
 ```cypher
-MATCH p=(g:Games)-[*..2]-(:Country)
+MATCH p=(g:Games)-[*2]-(:Country)
 RETURN p
 ORDER BY g.year ASC
 LIMIT 1
@@ -366,7 +366,7 @@ query {
               name
               sex
             }
-            underNocNationalOlympicCommittees(WHERE: { noc: "FRA" }) {
+            underNocNationalOlympicCommittees(where: { noc: "FRA" }) {
               noc
             }
           }
