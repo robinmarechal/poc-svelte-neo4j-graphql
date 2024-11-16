@@ -274,9 +274,7 @@ async function scrape(url: WikiUrl, distance: number): Promise<PageInfo> {
 
     const baseUrl = url.split('/wiki')[0]
     const next = a
-        .filter((_, el) => el.attribs.href?.startsWith('/wiki/'))
-        .filter((_, el) => !el.attribs.href.includes('/API_'))
-        .filter((_, el) => !el.attribs.href.includes(':'))
+        .filter((_, el) => el.attribs.href?.startsWith('/wiki/') && !el.attribs.href.includes('/API_') && !el.attribs.href.includes(':'))
         .map((_, el) => ({ url: baseUrl + el.attribs.href.split("#")[0], title: el.attribs.title ?? '' }))
         .get()
     endParseFn();
@@ -339,10 +337,10 @@ console.log(`
 ----------------------------------------------------------------------------------------------------
 `)
 
-const visited = new Set<WikiUrl>();
-let nodeCount = 0
+// const visited = new Set<WikiUrl>();
 
 type QueueItem = { url: WikiUrl, distance: number }
+let nodeCount = 0
 const queue: QueueItem[] = [{ url: startUrl, distance: 0 }];
 let cntSuccess = 0;
 let cntErrors = 0;
@@ -411,52 +409,52 @@ function paginate(cypher: string, page: number = 0, pageSize: number = DEFAULT_P
     return executeQuery(cypher);
 }
 
-async function loadVisitedFromNeo4j(visited: Set<string>) {
-    const count = await runCount('match (n:WikiPage) where n.__load_created_at is not null return count(n) as cnt');
-    console.log(`Loading ${count} visited nodes...`)
+// async function loadVisitedFromNeo4j(visited: Set<string>) {
+//     const count = await runCount('match (n:WikiPage) where n.__load_created_at is not null return count(n) as cnt');
+//     console.log(`Loading ${count} visited nodes...`)
 
-    let page = 0;
-    while (visited.size < count) {
-        const results = await paginate(`match (n:WikiPage) where n.__load_created_at is not null return n`, page, 10000)
+//     let page = 0;
+//     while (visited.size < count) {
+//         const results = await paginate(`match (n:WikiPage) where n.__load_created_at is not null return n`, page, 10000)
 
-        if (!results.records.length) {
-            console.debug("No more visted nodes...")
-            break;
-        }
+//         if (!results.records.length) {
+//             console.debug("No more visted nodes...")
+//             break;
+//         }
 
-        for (const rec of results.records) {
-            const props = rec.get('n').properties
-            visited.add(props.url)
-        }
+//         for (const rec of results.records) {
+//             const props = rec.get('n').properties
+//             visited.add(props.url)
+//         }
 
-        console.log("[%f%%] Page: %d, visited size: %d", Math.floor(100 * (visited.size * 100 / count)) / 100, page, visited.size)
-        page++;
-    }
-}
+//         console.log("[%f%%] Page: %d, visited size: %d", Math.floor(100 * (visited.size * 100 / count)) / 100, page, visited.size)
+//         page++;
+//     }
+// }
 
-async function loadQueueFromNeo4j(queue: QueueItem[]) {
-    const count = await runCount('match (n:WikiPage) where n.__error is null and n.__load_created_at is null and not exists ((n)-[:LINKS]->()) return count(n) as cnt');
-    console.log(`Loading ${count} nodes...`)
+// async function loadQueueFromNeo4j(queue: QueueItem[]) {
+//     const count = await runCount('match (n:WikiPage) where n.__error is null and n.__load_created_at is null and not exists ((n)-[:LINKS]->()) return count(n) as cnt');
+//     console.log(`Loading ${count} nodes...`)
 
-    let page = 0;
-    while (queue.length < count) {
-        const results = await paginate(`match (n:WikiPage) where n.__error is null and n.__load_created_at is null and not exists ((n)-[:LINKS]->()) return n`, page)
+//     let page = 0;
+//     while (queue.length < count) {
+//         const results = await paginate(`match (n:WikiPage) where n.__error is null and n.__load_created_at is null and not exists ((n)-[:LINKS]->()) return n`, page)
 
-        if (!results.records.length) {
-            console.debug("No more queue element...")
-            break;
-        }
+//         if (!results.records.length) {
+//             console.debug("No more queue element...")
+//             break;
+//         }
 
-        for (const rec of results.records) {
-            const props = rec.get('n').properties
-            queue.push({ url: props.url, distance: props.__load_distance })
-        }
+//         for (const rec of results.records) {
+//             const props = rec.get('n').properties
+//             queue.push({ url: props.url, distance: props.__load_distance })
+//         }
 
 
-        console.log("[%f%%] Page: %d, queue size: %d", Math.floor(100 * (queue.length * 100 / count)) / 100, page, queue.length)
-        page++;
-    }
-}
+//         console.log("[%f%%] Page: %d, queue size: %d", Math.floor(100 * (queue.length * 100 / count)) / 100, page, queue.length)
+//         page++;
+//     }
+// }
 
 async function popNextPages<T>(queue: T[], n: number, ignoreFn: (candidate: T) => boolean | Promise<boolean>): Promise<T[]> {
     const nextPages: T[] = [];
@@ -504,6 +502,21 @@ async function concurrentScrape(nodes: QueueItem[]) {
 
     endFn();
     return { fulfilled, rejected }
+}
+
+
+
+function deduplicate<T>(array: T[], uniqueKeySelector: (t: T) => any): T[]{
+    const dedup: T[] = [];
+
+    for(const item of array){
+        const itemKey = uniqueKeySelector(item)
+        if(dedup.every(d => uniqueKeySelector(d) !== itemKey)){
+            dedup.push(item);
+        }
+    }
+
+    return dedup;
 }
 
 async function handleRejects(rejects: { node: QueueItem, error: any }[]) {
@@ -606,6 +619,7 @@ async function handleFulfilled(fulfills: { node: QueueItem, pageInfo: PageInfo }
                 SET to.title = next.title, 
                     to.__load_distance = page.distance, 
                     to.__load_precreated_at = datetime()
+            WITH from, to
             WHERE NOT EXISTS ((from)-->(to))
             MERGE (from)-[:LINKS { __load_created_at: datetime() }]->(to)
         `, { pages: fulfills.map(f => f.pageInfo) })
@@ -731,29 +745,26 @@ if (restart) {
     console.log(`Loaded queue of ${queue.length} elements`)
 
     if (!queue.length) {
-        console.error("[ERROR] Cannot restart with empty queue")
-        stop(1)
+        queue.push({url: startUrl, distance: 0})
+        // console.error("[ERROR] Cannot restart with empty queue")
+        // stop(1)
     }
 
     console.log("Restart done");
 }
 
-
-while (queue.length && visited.size < MAX_CACHE_SIZE) {
+while (queue.length) {
     // const nodes = popNextPages(queue, parallelScrapes, (node) => node.distance >= maxDistance || visited.has(node.url))
     const nodes = await popNextPages(queue, parallelScrapes, async (node) => node.distance >= maxDistance || await alreadyScraped(node.url))
 
     try {
-        const { fulfilled, rejected } = await concurrentScrape(nodes);
+        let { fulfilled, rejected } = await concurrentScrape(nodes);
 
-        // Allows to handle the case of redirections or url anchors
-        // where a page has multiple links to the same page, but with anchor points
-        // The links URL are not the same, but the target page has the same URL (without anchor point)
-        const dedupRejected = rejected.filter(rej => !visited.has(rej.node.url))
-        const dedupFulfilled = fulfilled.filter(fulf => !visited.has(fulf.pageInfo.canonicalUrl))
+        rejected = deduplicate(rejected, item => item.node.url)
+        fulfilled = deduplicate(fulfilled, item => item.pageInfo.canonicalUrl)
 
-        await handleRejects(dedupRejected);
-        await handleFulfilled(dedupFulfilled);
+        await handleRejects(rejected);
+        await handleFulfilled(fulfilled);
 
         cntSuccess += fulfilled.length;
         cntErrors += rejected.length;
@@ -761,8 +772,8 @@ while (queue.length && visited.size < MAX_CACHE_SIZE) {
         mSuccessCounter.inc(cntSuccess)
         mErrorsCounter.inc(cntErrors);
 
-        nodes.forEach(n => visited.add(n.url));
-        fulfilled.forEach(n => visited.add(n.pageInfo.canonicalUrl));
+        // nodes.forEach(n => visited.add(n.url));
+        // fulfilled.forEach(n => visited.add(n.pageInfo.canonicalUrl));
 
         // updateQueue(fulfilled)
     }
