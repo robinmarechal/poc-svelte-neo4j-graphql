@@ -28,6 +28,16 @@ const cypherTimer = new promClient.Histogram({
     labelNames: ["query"]
 })
 
+const mTotalLinksSentToNeo4j = new promClient.Counter({
+    name: 'wikiscraper_pages_sent_to_neo4j_total',
+    help: 'Total number of pages sent to neo4j'
+})
+
+const mTotalPagesSentToNeo4j = new promClient.Counter({
+    name: 'wikiscraper_links_sent_to_neo4j_total',
+    help: 'Total number of links sent to neo4j'
+})
+
 // const cypherSaveResultTimer = new promClient.Histogram({
 //     name: 'wikiscraper_save_scrape_cypher_timer',
 //     help: 'The time spent in cypher queries',
@@ -160,10 +170,27 @@ const mErrorsCounter = new promClient.Counter({
     help: 'Number of failed scrapes'
 })
 
+const mRenames = new promClient.Counter({
+    name: 'wikiscraper_scraping_detected_renames_total',
+    help: 'Number of renamed pages detected'
+})
+
+const mSkippedRenames = new promClient.Counter({
+    name: 'wikiscraper_scraping_skipped_renames_total',
+    help: 'Number of skipped renamed pages'
+})
+
+const mCliArg = new promClient.Gauge({
+    name: 'wikiscraper_config',
+    help: 'Configuration flags',
+    labelNames: ['key', 'value']
+})
+
 const startMs = Date.now();
 startTime.set(startMs)
 
 const METRICS_NEO4J_INTERVAL_MS = 60000
+const METRICS_LONG_NEO4J_INTERVAL_MS = METRICS_NEO4J_INTERVAL_MS * 5
 const MAX_CACHE_SIZE = 1000000000; //100000;
 const MAX_NEXTS = 3;
 
@@ -184,13 +211,24 @@ const DEFAULT_QUEUE_CHUNK_SIZE = 10000
 
 type WikiUrl = string;
 
-type PageInfo = {
+type CommonPageInfo = {
     canonicalUrl: WikiUrl,
     url: WikiUrl;
     title: string;
+}
+
+type KeepedPage = CommonPageInfo & {
+    skip?: false;
     next: Set<{ url: WikiUrl, title: string }>;
     distance: number;
 }
+
+type SkippedPage = CommonPageInfo & {
+    skip: true;
+}
+
+type PageInfo = KeepedPage | SkippedPage
+
 
 module CLI {
     export function getCliOption(key: string, defaultValue: number): number;
@@ -198,24 +236,32 @@ module CLI {
     export function getCliOption(key: string, defaultValue: number | string): number | string {
         const entry = process.argv.find(arg => arg.startsWith(`--${key}=`))
 
-        if (!entry) {
-            return defaultValue;
+        const getValue = () => {
+            if (!entry) {
+                return defaultValue;
+            }
+
+            const cliValue = entry.split("=")[1]
+
+            if (typeof defaultValue === 'string') {
+                return cliValue;
+            }
+            if (typeof defaultValue === 'number') {
+                return parseInt(cliValue);
+            }
+
+            throw new Error(`Cannot get CLI option --${key}`)
         }
 
-        const cliValue = entry.split("=")[1]
-
-        if (typeof defaultValue === 'string') {
-            return cliValue;
-        }
-        if (typeof defaultValue === 'number') {
-            return parseInt(cliValue);
-        }
-
-        throw new Error(`Cannot get CLI option --${key}`)
+        const value = getValue();
+        mCliArg.labels({ key, value }).set(1);
+        return value;
     }
 
     export function getCliFlag(key: string, defaultValue: boolean = false): boolean {
-        return process.argv.includes(`--${key}`) ? true : defaultValue;
+        const value = process.argv.includes(`--${key}`) ? true : defaultValue;
+        mCliArg.labels({ key, value: value?.toString() ?? 'null' }).set(1)
+        return value;
     }
 }
 
@@ -252,8 +298,8 @@ function timeAsync<T>(timer: promClient.Histogram<string>, fn: () => Promise<T>)
     return fn().finally(() => endFn());
 }
 
-async function scrape(url: WikiUrl, distance: number): Promise<PageInfo> {
-    // console.log(`${url} (${++count})`)
+// console.log(`${url} (${++count})`)
+async function scrape(url: WikiUrl, distance: number, shouldSkipRedirection?: (url: WikiUrl) => Promise<boolean>): Promise<PageInfo | SkippedPage> {
     const response = await timeAsync(httpTimer, async () => got(url));
     const $ = timeSync(cheerioLoadTimer, () => cheerio.load(response.body));
 
@@ -261,15 +307,30 @@ async function scrape(url: WikiUrl, distance: number): Promise<PageInfo> {
     const title = findTitle(url, $)
     // console.log(`${url} - title: ${title}`)
 
-    const a = $('.mw-content-ltr').first()
-        .find('a')
-
     const canonicalUrl = $('link[rel=canonical]')?.[0]?.attribs?.href ?? url;
 
     if (canonicalUrl !== url) {
         console.debug(`Detected redirection: ${url} → ${canonicalUrl}`)
+        mRenames.inc()
+
+        if (shouldSkipRedirection && await shouldSkipRedirection(canonicalUrl)) {
+            console.debug(`Skipping ${canonicalUrl}`)
+            mSkippedRenames.inc()
+
+            endParseFn();
+            return {
+                canonicalUrl,
+                url,
+                title,
+                skip: true,
+            }
+        }
     }
 
+    // Already scraped?
+
+
+    const a = $('.mw-content-ltr').first().find('a')
     // console.log(`${url} - a:`, a)
 
     const baseUrl = url.split('/wiki')[0]
@@ -364,6 +425,17 @@ const driver = neo4j.driver(
 // await driver.executeQuery("CREATE INDEX wikipage_idx_url IF NOT EXISTS FOR (n:WikiPage) ON (n.url)");
 await driver.executeQuery("CREATE CONSTRAINT wikipage_idx_url_unique IF NOT EXISTS FOR (n:WikiPage) REQUIRE n.url IS UNIQUE");
 
+await driver.executeQuery("CREATE INDEX wikipage_idx_has_error IF NOT EXISTS FOR (n:WikiPage) ON (n.__has__error)");
+await driver.executeQuery("CREATE INDEX wikipage_idx_load_created_at IF NOT EXISTS FOR (n:WikiPage) ON (n.__load_created_at)");
+
+await driver.executeQuery("DROP INDEX wikipage_idx_has_error IF EXISTS");
+await driver.executeQuery("DROP INDEX wikipage_idx_load_created_at IF EXISTS");
+await driver.executeQuery("CREATE INDEX wikipage_idx_has_error_load_created_at IF NOT EXISTS FOR (n:WikiPage) ON (n.__load_created_at, n.__has_error);");
+
+await driver.executeQuery("DROP INDEX wikipage_idx_has_error_load_created_at IF EXISTS");
+await driver.executeQuery("CREATE INDEX wikipage_idx_has_error IF NOT EXISTS FOR (n:WikiPage) ON (n.__has_error)");
+await driver.executeQuery("CREATE INDEX wikipage_idx_complete IF NOT EXISTS FOR (n:WikiPage) ON (n.__complete)");
+
 function stop(code: number) {
     driver.close();
     exit(code);
@@ -382,11 +454,11 @@ async function runCount(query: string, params?: object) {
     return countResult.records?.[0]?.get('cnt')?.low;
 }
 
-setInterval(async () => {
+async function updateShortMetrics() {
     const cntNodes = await runCount(`MATCH (n:WikiPage) RETURN count(n) as cnt`)
     const cntLinks = await runCount(`MATCH (:WikiPage)-[r:LINKS]->() RETURN count(r) as cnt`)
-    const cntDoneNodes = await runCount(`MATCH (n:WikiPage) WHERE exists ((n)-[:LINKS]->()) RETURN count(n) as cnt`)
-    const cntNotDoneNodes = cntNodes - cntDoneNodes;
+    const cntNotDoneNodes = await runCount(`MATCH (n:WikiPage) WHERE not n.__complete RETURN count(n) as cnt`)
+    const cntDoneNodes = cntNodes - cntNotDoneNodes;
 
     neo4jNodesCounter.set(cntNodes);
     neo4jLinksCounter.set(cntLinks);
@@ -394,8 +466,10 @@ setInterval(async () => {
     neo4jRemainingPagesGauge.set(cntNotDoneNodes)
 
     console.log(`Updated neo4j metrics. Nodes: ${cntNodes}, Links; ${cntLinks}, PagesCompleted: ${cntDoneNodes}, PageNotScrapedYet: ${cntNotDoneNodes}`)
+}
 
-}, METRICS_NEO4J_INTERVAL_MS)
+setInterval(async () => await updateShortMetrics(), METRICS_NEO4J_INTERVAL_MS)
+await updateShortMetrics()
 
 function executeQuery(cypher: string, params?: object) {
     console.debug(`[CYPHER] ${cypher}`);
@@ -433,12 +507,12 @@ function paginate(cypher: string, page: number = 0, pageSize: number = DEFAULT_P
 // }
 
 // async function loadQueueFromNeo4j(queue: QueueItem[]) {
-//     const count = await runCount('match (n:WikiPage) where n.__error is null and n.__load_created_at is null and not exists ((n)-[:LINKS]->()) return count(n) as cnt');
+//     const count = await runCount('match (n:WikiPage) where n.__has_error is null and n.__load_created_at is null and not exists ((n)-[:LINKS]->()) return count(n) as cnt');
 //     console.log(`Loading ${count} nodes...`)
 
 //     let page = 0;
 //     while (queue.length < count) {
-//         const results = await paginate(`match (n:WikiPage) where n.__error is null and n.__load_created_at is null and not exists ((n)-[:LINKS]->()) return n`, page)
+//         const results = await paginate(`match (n:WikiPage) where n.__has_error is null and n.__load_created_at is null and not exists ((n)-[:LINKS]->()) return n`, page)
 
 //         if (!results.records.length) {
 //             console.debug("No more queue element...")
@@ -475,8 +549,8 @@ async function popNextPages<T>(queue: T[], n: number, ignoreFn: (candidate: T) =
     return nextPages;
 }
 
-async function concurrentScrape(nodes: QueueItem[]) {
-    const fulfilled: { node: QueueItem, pageInfo: PageInfo }[] = [];
+async function concurrentScrape(nodes: QueueItem[], shouldSkipRedirection?: (url: WikiUrl) => Promise<boolean>) {
+    const fulfilled: { node: QueueItem, pageInfo: PageInfo | SkippedPage }[] = [];
     const rejected: { node: QueueItem, error: any }[] = [];
 
     const endFn = scrapeTimer.startTimer();
@@ -486,7 +560,7 @@ async function concurrentScrape(nodes: QueueItem[]) {
     // without await, an "await all" is done once all promises are submitted
     // Does not preserve order but that's ok
     const promises = nodes.map(node => {
-        return scrape(node.url, node.distance)
+        return scrape(node.url, node.distance, shouldSkipRedirection)
             .then(pageInfo => fulfilled.push({ node, pageInfo }))
             .catch(error => rejected.push({ node, error }))
     })
@@ -506,12 +580,12 @@ async function concurrentScrape(nodes: QueueItem[]) {
 
 
 
-function deduplicate<T>(array: T[], uniqueKeySelector: (t: T) => any): T[]{
+function deduplicate<T>(array: T[], uniqueKeySelector: (t: T) => any): T[] {
     const dedup: T[] = [];
 
-    for(const item of array){
+    for (const item of array) {
         const itemKey = uniqueKeySelector(item)
-        if(dedup.every(d => uniqueKeySelector(d) !== itemKey)){
+        if (dedup.every(d => uniqueKeySelector(d) !== itemKey)) {
             dedup.push(item);
         }
     }
@@ -519,7 +593,7 @@ function deduplicate<T>(array: T[], uniqueKeySelector: (t: T) => any): T[]{
     return dedup;
 }
 
-async function handleRejects(rejects: { node: QueueItem, error: any }[]) {
+async function handleRejects(tx, rejects: { node: QueueItem, error: any }[]) {
     const endFn = cypherTimer.startTimer({ query: 'save-error' });
 
     rejects = rejects.map(rej => ({ node: rej.node, error: rej.error?.message ?? rej.error }))
@@ -529,7 +603,7 @@ async function handleRejects(rejects: { node: QueueItem, error: any }[]) {
     }
 
     try {
-        await driver.executeQuery(`
+        await tx.run(`
             UNWIND $rejects as reject
             MATCH (from: WikiPage {url: reject.node.url}) 
                 SET from.__has_error = true,
@@ -544,7 +618,7 @@ async function handleRejects(rejects: { node: QueueItem, error: any }[]) {
     endFn();
 }
 
-async function handleRenamedPages(fulfills: { node: QueueItem, pageInfo: PageInfo }[]) {
+async function handleRenamedPages(tx, fulfills: { node: QueueItem, pageInfo: PageInfo | SkippedPage }[]) {
     const toMerge = fulfills.map(ff => ff.pageInfo).filter(page => page.canonicalUrl !== page.url)
     if (toMerge.length) {
         // Redirecting relationships to canonical node
@@ -554,17 +628,27 @@ async function handleRenamedPages(fulfills: { node: QueueItem, pageInfo: PageInf
 
         // Creating canonical nodes beforeall
         console.debug("Creating/merging correct nodes before before merge")
-        await driver.executeQuery(`
+        await tx.run(`
             UNWIND $pages as page
             MERGE (n:WikiPage {url: page.canonicalUrl})
                 SET n.distance = page.distance,
                     n.title = page.title, 
+                    n.__complete = 
+                        CASE n.__complete 
+                            WHEN is not null THEN n.__complete 
+                            ELSE false
+                        END,
+                    n.__has_error =
+                        CASE n.__has_error 
+                            WHEN is not null THEN n.__has_error 
+                            ELSE false
+                        END,
                     n.__load_created_at = datetime()
         `, { pages: toMerge })
 
         console.debug("Redirecting incoming relationships to new targets")
         const endReplaceTargetFn = cypherTimer.startTimer({ query: 'merge/replace-target' });
-        await driver.executeQuery(`
+        await tx.run(`
             UNWIND $pages as page
             MATCH (from)-[inc:LINKS]->(oldTo:WikiPage {url: page.url})
             MATCH (newTo: WikiPage {url: page.canonicalUrl})
@@ -578,7 +662,7 @@ async function handleRenamedPages(fulfills: { node: QueueItem, pageInfo: PageInf
 
         console.debug("Redirecting outgoing relationships to new sources")
         const endReplaceSourceFn = cypherTimer.startTimer({ query: 'merge/replace-source' })
-        await driver.executeQuery(`
+        await tx.run(`
             UNWIND $pages as page
             MATCH (oldFrom: WikiPage {url: page.url})-[out:LINKS]->(to)
             MATCH (newFrom: WikiPage {url: page.canonicalUrl})
@@ -592,7 +676,7 @@ async function handleRenamedPages(fulfills: { node: QueueItem, pageInfo: PageInf
 
         console.debug("Deleting old nodes turned orphans")
         const endDeleteOldFn = cypherTimer.startTimer({ query: 'merge/delete-old-node' });
-        await driver.executeQuery(`
+        await tx.run(`
             UNWIND $pages as page
             MATCH (n: WikiPage {url: page.url})
             DETACH DELETE n
@@ -603,33 +687,68 @@ async function handleRenamedPages(fulfills: { node: QueueItem, pageInfo: PageInf
     }
 }
 
-async function handleFulfilled(fulfills: { node: QueueItem, pageInfo: PageInfo }[]) {
+function isKeepedPage(pageInfo: PageInfo): pageInfo is KeepedPage {
+    return !pageInfo.skip
+}
+
+function assertsIsKeepedPages(pages: PageInfo[]): asserts pages is KeepedPage[] {
+    if (!pages.every(isKeepedPage)) {
+        throw Error("Invalid type")
+    }
+}
+
+async function handleFulfilled(tx, fulfills: { node: QueueItem, pageInfo: PageInfo | SkippedPage }[]) {
     const endFn = cypherTimer.startTimer({ query: 'save-result' });
     try {
-        await handleRenamedPages(fulfills)
 
-        await driver.executeQuery(`
+        await handleRenamedPages(tx, fulfills)
+
+        const pages = fulfills.map(f => f.pageInfo).filter(p => isKeepedPage(p))
+        assertsIsKeepedPages(pages);
+
+        await tx.run(`
             UNWIND $pages as page
             MERGE (from: WikiPage {url: page.canonicalUrl}) 
                 SET from.title = page.title, 
+                    from.__has_error = false,
+                    from.__complete = true,
                     from.__load_created_at = datetime()
             WITH page, from
             UNWIND page.next as next
             MERGE (to: WikiPage {url: next.url})
-                SET to.title = next.title, 
-                    to.__load_distance = page.distance, 
-                    to.__load_precreated_at = datetime()
-            WITH from, to
+            WITH from, to, next, page
             WHERE NOT EXISTS ((from)-->(to))
+            SET to.title = next.title, 
+                to.__complete = 
+                    CASE to.__complete 
+                        WHEN is not null THEN to.__complete 
+                        ELSE false
+                    END,
+                to.__has_error =
+                CASE to.__has_error 
+                    WHEN is not null THEN to.__has_error 
+                    ELSE false
+                END,
+                to.__load_distance = page.distance, 
+                to.__load_precreated_at = datetime()
             MERGE (from)-[:LINKS { __load_created_at: datetime() }]->(to)
-        `, { pages: fulfills.map(f => f.pageInfo) })
+        `, { pages })
+
+        mTotalPagesSentToNeo4j.inc(pages.length)
+        mTotalLinksSentToNeo4j.inc(pages.reduce((acc, p) => acc += p.next.size, 0))
+
     }
     catch (error) {
         console.error("[ERROR] Error when saving pages and links to neo4j", error)
     }
 
     for (const { pageInfo } of fulfills) {
-        console.log(`[#${++nodeCount}] (d=${pageInfo.distance}) Created node '${pageInfo.url}' and ${pageInfo.next.size} outgoing links`)
+        if (pageInfo.skip) {
+            console.log(`[#${++nodeCount}] Skipping '${pageInfo.canonicalUrl}'`)
+        }
+        else {
+            console.log(`[#${++nodeCount}] (d=${pageInfo.distance}) Created node '${pageInfo.canonicalUrl}' and ${pageInfo.next.size} outgoing links`)
+        }
     }
     endFn();
 }
@@ -648,8 +767,7 @@ async function alreadyScraped(url: WikiUrl): Promise<boolean> {
     const endFn = cypherTimer.startTimer({ query: 'already-hit' });
     const count = await runCount(`
         MATCH (n:WikiPage {url: $url}) 
-        WHERE n.__load_created_at IS NOT NULL 
-            OR n.__error IS NOT NULL            
+        WHERE n.__complete 
         RETURN COUNT(n) as cnt
     `, { url })
     endFn();
@@ -668,9 +786,7 @@ async function loadQueueChunk(queue: QueueItem[]) {
     const endFn = cypherTimer.startTimer({ query: 'load-queue-chunk' });
     const results = await driver.executeQuery(`
         match (n:WikiPage)
-        where n.__error is null 
-            and n.__load_created_at is null 
-            and not exists ((n)-[:LINKS]->()) 
+        where not n.__complete 
         return n
         limit ${queueChunkSize}`)
     endFn();
@@ -745,7 +861,7 @@ if (restart) {
     console.log(`Loaded queue of ${queue.length} elements`)
 
     if (!queue.length) {
-        queue.push({url: startUrl, distance: 0})
+        queue.push({ url: startUrl, distance: 0 })
         // console.error("[ERROR] Cannot restart with empty queue")
         // stop(1)
     }
@@ -758,13 +874,17 @@ while (queue.length) {
     const nodes = await popNextPages(queue, parallelScrapes, async (node) => node.distance >= maxDistance || await alreadyScraped(node.url))
 
     try {
-        let { fulfilled, rejected } = await concurrentScrape(nodes);
+        let { fulfilled, rejected } = await concurrentScrape(nodes, alreadyScraped);
 
         rejected = deduplicate(rejected, item => item.node.url)
         fulfilled = deduplicate(fulfilled, item => item.pageInfo.canonicalUrl)
 
-        await handleRejects(rejected);
-        await handleFulfilled(fulfilled);
+        const session = driver.session();
+        await session.executeWrite(async tx => {
+            await handleRejects(tx, rejected);
+            await handleFulfilled(tx, fulfilled);
+        })
+        session.close()
 
         cntSuccess += fulfilled.length;
         cntErrors += rejected.length;
