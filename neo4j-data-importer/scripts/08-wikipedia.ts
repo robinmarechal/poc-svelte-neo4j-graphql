@@ -314,7 +314,7 @@ async function scrape(url: WikiUrl, distance: number, shouldSkipRedirection?: (u
         mRenames.inc()
 
         if (shouldSkipRedirection && await shouldSkipRedirection(canonicalUrl)) {
-            console.debug(`Skipping ${canonicalUrl}`)
+            console.debug(`Skipping ${url} because it is redirecting to ${canonicalUrl} which has alreayd been processed`)
             mSkippedRenames.inc()
 
             endParseFn();
@@ -457,7 +457,7 @@ async function runCount(query: string, params?: object) {
 async function updateShortMetrics() {
     const cntNodes = await runCount(`MATCH (n:WikiPage) RETURN count(n) as cnt`)
     const cntLinks = await runCount(`MATCH (:WikiPage)-[r:LINKS]->() RETURN count(r) as cnt`)
-    const cntNotDoneNodes = await runCount(`MATCH (n:WikiPage) WHERE not n.__complete RETURN count(n) as cnt`)
+    const cntNotDoneNodes = await runCount(`MATCH (n:WikiPage) WHERE not n.__complete and not n.__has_error RETURN count(n) as cnt`)
     const cntDoneNodes = cntNodes - cntNotDoneNodes;
 
     neo4jNodesCounter.set(cntNodes);
@@ -621,58 +621,62 @@ async function handleRejects(tx, rejects: { node: QueueItem, error: any }[]) {
 async function handleRenamedPages(tx, fulfills: { node: QueueItem, pageInfo: PageInfo | SkippedPage }[]) {
     const toMerge = fulfills.map(ff => ff.pageInfo).filter(page => page.canonicalUrl !== page.url)
     if (toMerge.length) {
-        // Redirecting relationships to canonical node
-        for (const page of toMerge) {
-            console.log(`Merging node ${page.url} → ${page.canonicalUrl}`)
+
+        const notSkipped = toMerge.filter(p => !p.skip)
+        if (notSkipped.length) {
+            // Redirecting relationships to canonical node
+            for (const page of notSkipped) {
+                console.log(`Merging node ${page.url} → ${page.canonicalUrl}`)
+            }
+
+            // Creating canonical nodes beforeall
+            console.debug("Creating/merging correct nodes before before merge")
+            await tx.run(`
+                UNWIND $pages as page
+                MERGE (n:WikiPage {url: page.canonicalUrl})
+                    SET n.distance = page.distance,
+                        n.title = page.title, 
+                        n.__complete = 
+                            CASE n.__complete 
+                                WHEN is not null THEN n.__complete 
+                                ELSE false
+                            END,
+                        n.__has_error =
+                            CASE n.__has_error 
+                                WHEN is not null THEN n.__has_error 
+                                ELSE false
+                            END,
+                        n.__load_created_at = datetime()
+            `, { pages: notSkipped })
+
+            console.debug("Redirecting incoming relationships to new targets")
+            const endReplaceTargetFn = cypherTimer.startTimer({ query: 'merge/replace-target' });
+            await tx.run(`
+                UNWIND $pages as page
+                MATCH (from)-[inc:LINKS]->(oldTo:WikiPage {url: page.url})
+                MATCH (newTo: WikiPage {url: page.canonicalUrl})
+                WHERE oldTo <> newTo
+                    AND NOT EXISTS ((from)-->(newTo))
+                CALL apoc.refactor.to(inc, newTo)
+                YIELD input, output
+                RETURN input, output
+            `, { pages: notSkipped })
+            endReplaceTargetFn();
+
+            console.debug("Redirecting outgoing relationships to new sources")
+            const endReplaceSourceFn = cypherTimer.startTimer({ query: 'merge/replace-source' })
+            await tx.run(`
+                UNWIND $pages as page
+                MATCH (oldFrom: WikiPage {url: page.url})-[out:LINKS]->(to)
+                MATCH (newFrom: WikiPage {url: page.canonicalUrl})
+                WHERE oldFrom <> newFrom
+                    AND NOT EXISTS ((newFrom)-->(to))
+                CALL apoc.refactor.from(out, newFrom)
+                YIELD input, output
+                RETURN input, output
+            `, { pages: notSkipped })
+            endReplaceSourceFn();
         }
-
-        // Creating canonical nodes beforeall
-        console.debug("Creating/merging correct nodes before before merge")
-        await tx.run(`
-            UNWIND $pages as page
-            MERGE (n:WikiPage {url: page.canonicalUrl})
-                SET n.distance = page.distance,
-                    n.title = page.title, 
-                    n.__complete = 
-                        CASE n.__complete 
-                            WHEN is not null THEN n.__complete 
-                            ELSE false
-                        END,
-                    n.__has_error =
-                        CASE n.__has_error 
-                            WHEN is not null THEN n.__has_error 
-                            ELSE false
-                        END,
-                    n.__load_created_at = datetime()
-        `, { pages: toMerge })
-
-        console.debug("Redirecting incoming relationships to new targets")
-        const endReplaceTargetFn = cypherTimer.startTimer({ query: 'merge/replace-target' });
-        await tx.run(`
-            UNWIND $pages as page
-            MATCH (from)-[inc:LINKS]->(oldTo:WikiPage {url: page.url})
-            MATCH (newTo: WikiPage {url: page.canonicalUrl})
-            WHERE oldTo <> newTo
-                AND NOT EXISTS ((from)-->(newTo))
-            CALL apoc.refactor.to(inc, newTo)
-            YIELD input, output
-            RETURN input, output
-        `, { pages: toMerge })
-        endReplaceTargetFn();
-
-        console.debug("Redirecting outgoing relationships to new sources")
-        const endReplaceSourceFn = cypherTimer.startTimer({ query: 'merge/replace-source' })
-        await tx.run(`
-            UNWIND $pages as page
-            MATCH (oldFrom: WikiPage {url: page.url})-[out:LINKS]->(to)
-            MATCH (newFrom: WikiPage {url: page.canonicalUrl})
-            WHERE oldFrom <> newFrom
-                AND NOT EXISTS ((newFrom)-->(to))
-            CALL apoc.refactor.from(out, newFrom)
-            YIELD input, output
-            RETURN input, output
-        `, { pages: toMerge })
-        endReplaceSourceFn();
 
         console.debug("Deleting old nodes turned orphans")
         const endDeleteOldFn = cypherTimer.startTimer({ query: 'merge/delete-old-node' });
@@ -744,7 +748,12 @@ async function handleFulfilled(tx, fulfills: { node: QueueItem, pageInfo: PageIn
 
     for (const { pageInfo } of fulfills) {
         if (pageInfo.skip) {
-            console.log(`[#${++nodeCount}] Skipping '${pageInfo.canonicalUrl}'`)
+            if (pageInfo.url !== pageInfo.canonicalUrl) {
+                console.log(`[#${++nodeCount}] Skipping ${pageInfo.url} → ${pageInfo.canonicalUrl}`)
+            }
+            else {
+                console.log(`[#${++nodeCount}] Skipping ${pageInfo.url}`)
+            }
         }
         else {
             console.log(`[#${++nodeCount}] (d=${pageInfo.distance}) Created node '${pageInfo.canonicalUrl}' and ${pageInfo.next.size} outgoing links`)
@@ -767,7 +776,8 @@ async function alreadyScraped(url: WikiUrl): Promise<boolean> {
     const endFn = cypherTimer.startTimer({ query: 'already-hit' });
     const count = await runCount(`
         MATCH (n:WikiPage {url: $url}) 
-        WHERE n.__complete 
+        WHERE n.__complete
+            or n.__has_error 
         RETURN COUNT(n) as cnt
     `, { url })
     endFn();
@@ -787,6 +797,7 @@ async function loadQueueChunk(queue: QueueItem[]) {
     const results = await driver.executeQuery(`
         match (n:WikiPage)
         where not n.__complete 
+            and not n.__has_error
         return n
         limit ${queueChunkSize}`)
     endFn();
@@ -871,7 +882,8 @@ if (restart) {
 
 while (queue.length) {
     // const nodes = popNextPages(queue, parallelScrapes, (node) => node.distance >= maxDistance || visited.has(node.url))
-    const nodes = await popNextPages(queue, parallelScrapes, async (node) => node.distance >= maxDistance || await alreadyScraped(node.url))
+    // const nodes = await popNextPages(queue, parallelScrapes, async (node) => node.distance >= maxDistance || await alreadyScraped(node.url))
+    const nodes = await popNextPages(queue, parallelScrapes, (node) => node.distance >= maxDistance)
 
     try {
         let { fulfilled, rejected } = await concurrentScrape(nodes, alreadyScraped);

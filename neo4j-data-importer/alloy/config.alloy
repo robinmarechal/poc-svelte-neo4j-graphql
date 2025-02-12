@@ -9,9 +9,9 @@ local.file "endpoints" {
 ///////////////////////////////////////////////////////////////////////////////
 // Metrics scraping
 
-// This component scrapes the Mythical application, defining unique prometheus labels.
-prometheus.scrape "mythical" {
-    // Scrape from the mythical requester and server services, and add them to the 'mythical' group with their service
+// This component scrapes the Wikiscraper application, defining unique prometheus labels.
+prometheus.scrape "wikiscraper" {
+    // Scrape from the wikiscraper requester and server services, and add them to the 'wikiscraper' group with their service
     // names.
     targets = [
         {"__address__" = "localhost:3000", group = "neo4j-demo", service_name = "wiki-scraper"},
@@ -22,7 +22,7 @@ prometheus.scrape "mythical" {
     // Send the metrics to the prometheus remote write receiver for exporting to Mimir.
     forward_to = [prometheus.remote_write.mimir.receiver]
     // Attach the job name to the metrics.
-    job_name = "mythical"
+    job_name = "wikiscraper"
 }
 
 // Scrape the local Alloy itself.
@@ -318,9 +318,9 @@ otelcol.exporter.prometheus "tracemetrics" {
 ///////////////////////////////////////////////////////////////////////////////
 // Profiling
 
-// Scrape the Mythical application services for profiling data.
-pyroscope.scrape "mythical" {
-    // Denotes the targets to be scraped, in this case the mythical server, requester and recorder.
+// Scrape the Wikiscraper application services for profiling data.
+pyroscope.scrape "wikiscraper" {
+    // Denotes the targets to be scraped, in this case the wikiscraper server, requester and recorder.
     targets = [
         // {"__address__" = "localhost:3000", group = "neo4j-demo", service_name = "wiki-scraper"},
     ]
@@ -349,11 +349,11 @@ pyroscope.scrape "mythical" {
     }
 
     // Forward all scraped data to the Pyroscope exporter.
-    forward_to = [pyroscope.write.mythical.receiver]
+    forward_to = [pyroscope.write.wikiscraper.receiver]
 }
 
 // The Pyroscope exporter writes data with any additional information to the local Pyroscope instance.
-pyroscope.write "mythical" {
+pyroscope.write "wikiscraper" {
     // The endpoint is the listening Pyroscope instance.
     endpoint {
         url = json_path(local.file.endpoints.content, ".profiles.url")[0]
@@ -364,4 +364,50 @@ pyroscope.write "mythical" {
             password = json_path(local.file.endpoints.content, ".profiles.basicAuth.password")[0]
         }
     }
+}
+
+
+// loki.source.file "wikiscraper" {
+//   targets    = [
+//     {__path__ = "/tmp/wikiscraper/wikiscraper.log", "job" = "wikiscraper"}, 
+//   ]
+//   forward_to = [loki.write.cloud.receiver]
+// }
+
+
+loki.source.file "wikiscraper" {
+  targets    = local.file_match.wikiscraper.targets
+  forward_to = [loki.write.cloud.receiver]
+}
+
+local.file_match  "wikiscraper" {
+    path_targets = [
+        {__path__ = "/tmp/wikiscraper/wikiscraper.log", "job" = "wikiscraper"}, 
+        {__path__ = "/tmp/wikiscraper/wikiscraper-*.log", "job" = "wikiscraper"}, 
+    ]
+}
+
+// The Loki writer receives a processed Loki log and then writes it to a Loki instance.
+loki.write "cloud" {
+    // // Add the `alloy` value to the `job` label, so we can identify it as having been generated
+    // // by Grafana Alloy when querying.
+    // external_labels = {
+    //     job = "wikiscraper",
+    // }
+
+    // Output the Loki log to the local Loki instance.
+    endpoint {
+        url = json_path(local.file.endpoints.content, ".logs.url")[0]
+
+        // The basic auth credentials for the Loki instance.
+        basic_auth {
+            username = json_path(local.file.endpoints.content, ".logs.basicAuth.username")[0]
+            password = json_path(local.file.endpoints.content, ".logs.basicAuth.password")[0]
+        }
+    }
+}
+
+logging {
+  level  = "info"
+  format = "logfmt"
 }

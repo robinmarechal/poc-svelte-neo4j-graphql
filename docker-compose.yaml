@@ -42,6 +42,8 @@ services:
     volumes:
       - "./neo4j-data-importer/alloy/config.alloy:/etc/alloy/config.alloy"
       - "./neo4j-data-importer/alloy/endpoints.json:/etc/alloy/endpoints.json"
+      - "/tmp/wikiscraper/:/tmp/wikiscraper/"
+      - "/tmp/wikiscraper/alloy/data:/data-alloy"
     command: [
       "run",
       "--server.http.listen-addr=0.0.0.0:12345",
